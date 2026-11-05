@@ -12,7 +12,6 @@
     "pack:dir": "electron-builder --dir"
   },
   "dependencies": {
-    "@capacitor/electron": "^7.0.0",
     "@capawesome/capacitor-electron": "^7.0.0",
     "electron-is-dev": "^3.0.1"
   },
