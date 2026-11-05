@@ -1,18 +1,53 @@
 {
   "name": "filtrador-mar-electron",
-  "productName": "Filtrador MAR",
-  "private": true,
-  "version": "0.0.0",
-  "description": "Electron platform project for Filtrador MAR.",
-  "main": "build/main.js",
+  "version": "3.0.0",
+  "description": "Filtrador Pro de Hoteles - MAR Caribe (Desktop)",
+  "main": "dist/main.js",
+  "author": "angelvmar",
+  "license": "MIT",
   "scripts": {
     "build": "tsc",
     "start": "electron .",
-    "pack": "npm run build && capacitor-electron vendor && electron-builder --config electron-builder.config.js"
+    "pack": "electron-builder --win nsis",
+    "pack:dir": "electron-builder --dir"
+  },
+  "dependencies": {
+    "@capacitor/electron": "^7.0.0",
+    "@capawesome/capacitor-electron": "^7.0.0",
+    "electron-is-dev": "^3.0.1"
   },
   "devDependencies": {
-    "electron": "^43.0.0",
-    "electron-builder": "^26.0.12",
-    "typescript": "^5.5.0"
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.6.0"
+  },
+  "build": {
+    "appId": "com.angelvmar.filtrador",
+    "productName": "Filtrador MAR",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "app/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Filtrador MAR"
+    }
   }
 }

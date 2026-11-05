@@ -1,5 +1,32 @@
+# Dependencias
 node_modules/
-.gradle/
+electron/node_modules/
+electron/dist/
+electron/app/
+
+# Build Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+
+# Build Electron
+electron/dist/
+electron/out/
+electron/release/
+
+# Artefactos
 *.apk
 *.aab
+*.exe
+*.msi
+*.dmg
+*.AppImage
+
+# Sistema
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
