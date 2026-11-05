@@ -2,30 +2,41 @@ name: Build Android + Windows
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   build-android:
+    name: Build Android APK
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: actions/setup-java@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
+
       - name: Install dependencies
         run: npm install
+
       - name: Capacitor sync android
         run: npx cap sync android
+
       - name: Build Debug APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -33,22 +44,31 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
   build-windows:
+    name: Build Windows EXE
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
+
       - name: Install dependencies
         run: npm install
+
       - name: Capacitor sync electron
         run: npx cap sync @capawesome/capacitor-electron
+
       - name: Install electron deps
         working-directory: electron
         run: npm install
+
       - name: Build Windows installer
         working-directory: electron
         run: npm run pack
+
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
