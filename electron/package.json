@@ -8,8 +8,8 @@
   "scripts": {
     "build": "tsc",
     "start": "electron .",
-    "pack": "electron-builder --win nsis",
-    "pack:dir": "electron-builder --dir"
+    "pack": "npm run build && npx capacitor-electron vendor && electron-builder --win nsis",
+    "pack:dir": "npm run build && npx capacitor-electron vendor && electron-builder --dir"
   },
   "dependencies": {
     "@capawesome/capacitor-electron": "^0.2.2",
@@ -31,6 +31,7 @@
       "dist/**/*",
       "app/**/*",
       "node_modules/**/*",
+      "vendor/**/*",
       "package.json"
     ],
     "win": {
