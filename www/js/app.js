@@ -33,7 +33,8 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
       const res = info.map(h=>`• ${h.nombre}: ${h.filas}`).join('\n');
       mostrarToast(`📚 ${info.length} hojas · ${filas.length} registros`, 4000);
       setTimeout(()=>alert(`✅ ${info.length} hojas unidas:\n\n${res}\n\nTotal: ${filas.length} registros`), 100);
-      ejecutarAutoguardado(); // Guardar inmediatamente al cargar
+      ejecutarAutoguardado();
+      actualizarProgresoDepuracion();
     } catch(err) { alert('Error: '+err.message); }
   };
   reader.readAsArrayBuffer(file);
@@ -120,7 +121,15 @@ function editarMasiva() {
 
 function eliminarSeleccionados() {
   if(!seleccionados.size) return;
-  if(!confirm(`¿Eliminar ${seleccionados.size} registros?`)) return;
+  
+  // CONFIRMACIÓN SEGURA PARA GRANDES CANTIDADES
+  if (seleccionados.size > 50) {
+    const texto = prompt(`⚠️ Vas a eliminar ${seleccionados.size} registros de golpe.\n\nEsta acción se puede deshacer con Ctrl+Z, pero es recomendable estar seguro.\n\nEscribe "BORRAR" para confirmar:`);
+    if (texto !== 'BORRAR') { alert('Eliminación cancelada'); return; }
+  } else {
+    if(!confirm(`¿Eliminar ${seleccionados.size} registros?`)) return;
+  }
+  
   guardarParaDeshacer('eliminar registros');
   const idxs = new Set(); seleccionados.forEach(i => { const item=datosFiltrados[i]; const oi=datosOriginales.indexOf(item); if(oi!==-1) idxs.add(oi); });
   const sorted = Array.from(idxs).sort((a,b)=>b-a);
@@ -131,7 +140,7 @@ function eliminarSeleccionados() {
   asignaciones = nuevas; seleccionados.clear();
   filtrarDatos(); renderizarTabla(); actualizarEstadisticas(); detectarDuplicados(); renderizarCarpetas();
   mostrarToast(`✅ ${sorted.length} eliminados`);
-  programarAutoguardado();
+  programarAutoguardado(); actualizarProgresoDepuracion();
 }
 
 // ===== EXPORTAR =====
@@ -165,6 +174,7 @@ function actualizarEstadisticas() {
   document.getElementById('totalFiltrados').textContent = datosFiltrados.length;
   document.getElementById('totalSeleccionados').textContent = seleccionados.size;
   document.getElementById('totalCarpetas').textContent = carpetas.size;
+  actualizarProgresoDepuracion();
 }
 
 function habilitarBotones() {
@@ -177,16 +187,36 @@ function cerrarAyuda() { document.getElementById('modalAyuda').style.display='no
 
 try { const s=localStorage.getItem('vistasGuardadas'); if(s) vistasGuardadas=JSON.parse(s); } catch(e){}
 
+// ===== ATAJOS DE TECLADO =====
 document.addEventListener('keydown', function(e) {
+  // Evitar que los atajos salten si estamos escribiendo en un input
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
   if(e.ctrlKey && e.key==='f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
   else if(e.ctrlKey && e.key==='z') { e.preventDefault(); deshacer(); }
   else if(e.key==='Escape') { cerrarPanelFiltro(); cerrarAyuda(); }
+  
+  // NUEVOS ATAJOS DE TECLADO
+  else if (e.key === 'a' || e.key === 'A') { e.preventDefault(); seleccionarTodos(); mostrarToast('☑️ Todos seleccionados', 1500); }
+  else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); deseleccionarTodos(); mostrarToast('⬜ Selección vacía', 1500); }
+  else if (e.key === 'd' || e.key === 'D') { e.preventDefault(); mostrarDuplicados(); }
+  
+  // ATAJOS NUMÉRICOS (1-9) PARA CARPETAS
+  else if (/^[1-9]$/.test(e.key)) {
+    const index = parseInt(e.key) - 1;
+    const carpetasArray = Array.from(carpetas.keys());
+    if (carpetasArray[index]) {
+      e.preventDefault();
+      asignarSeleccionadosA(carpetasArray[index]);
+    } else {
+      mostrarToast(`⚠️ No existe la carpeta ${e.key}`, 1500);
+    }
+  }
 });
 
 // ===== INICIALIZACIÓN =====
 (async function initApp() {
   await initDB();
-  // Ofrecer reanudar sesión anterior si existe
   setTimeout(() => { ofrecerReanudarSesion(); }, 500);
 })();
 

@@ -25,3 +25,18 @@ function mostrarToast(msg, ms) {
   t.textContent = msg; t.style.opacity='1';
   clearTimeout(t._timeout); t._timeout = setTimeout(()=>{t.style.opacity='0';}, ms||2000);
 }
+
+function actualizarProgresoDepuracion() {
+  if (!datosOriginales || datosOriginales.length === 0) {
+    document.getElementById('progresoPanel').style.display = 'none';
+    return;
+  }
+  document.getElementById('progresoPanel').style.display = 'block';
+  
+  const total = datosOriginales.length;
+  const asignados = asignaciones.size; // Cuántos ya están en alguna carpeta
+  const porcentaje = Math.round((asignados / total) * 100);
+  
+  document.getElementById('progresoTexto').textContent = `${porcentaje}% (${asignados}/${total})`;
+  document.getElementById('progresoFill').style.width = porcentaje + '%';
+}

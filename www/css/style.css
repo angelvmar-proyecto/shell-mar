@@ -90,3 +90,10 @@ th.con-filtro { background:#f0ebff !important; }
 .toolbar-sesion { background: #e7f3ff; border: 1px solid #b6d4fe; }
 .toolbar-sesion button { background: #0d6efd; }
 .toolbar-sesion button:hover { background: #0b5ed7; }
+
+/* Barra de progreso */
+.progreso-panel { background:#fff; border:1px solid #dee2e6; border-radius:6px; padding:10px 15px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+.progreso-info { display:flex; justify-content:space-between; font-size:.85em; margin-bottom:6px; color:#333; }
+.progreso-info strong { color:#6f42c1; }
+.progreso-barra-bg { width:100%; height:12px; background:#e9ecef; border-radius:6px; overflow:hidden; }
+.progreso-barra-fill { height:100%; background:linear-gradient(90deg, #6f42c1, #28a745); transition:width .3s ease; border-radius:6px; }

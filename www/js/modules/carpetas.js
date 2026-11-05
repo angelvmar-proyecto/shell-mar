@@ -14,7 +14,7 @@ function crearCarpeta() {
   carpetas.set(id, { nombre, color: COLORES_CARPETAS[(contadorCarpetas-1)%COLORES_CARPETAS.length] });
   input.value = '';
   renderizarCarpetas(); renderizarTabla(); actualizarEstadisticas();
-  programarAutoguardado();
+  programarAutoguardado(); actualizarProgresoDepuracion();
 }
 
 function eliminarCarpeta(id) {
@@ -26,7 +26,7 @@ function eliminarCarpeta(id) {
   carpetas.delete(id);
   if(carpetaActivaFiltro===id) carpetaActivaFiltro=null;
   filtrarDatos(); renderizarCarpetas(); renderizarTabla(); actualizarEstadisticas();
-  programarAutoguardado();
+  programarAutoguardado(); actualizarProgresoDepuracion();
 }
 
 function renombrarCarpeta(id) {
@@ -35,7 +35,7 @@ function renombrarCarpeta(id) {
   for(const [cid,cc] of carpetas) if(cid!==id && cc.nombre.toLowerCase()===n.toLowerCase().trim()) { alert('Ya existe'); return; }
   guardarParaDeshacer('renombrar carpeta');
   c.nombre = n.trim(); renderizarCarpetas(); renderizarTabla();
-  programarAutoguardado();
+  programarAutoguardado(); actualizarProgresoDepuracion();
 }
 
 function contarRegistrosEnCarpeta(id) { let n=0; for(const [,cid] of asignaciones) if(cid===id) n++; return n; }
@@ -50,7 +50,7 @@ function moverSeleccionadosA(idCarpeta) {
   const nombre = idCarpeta ? carpetas.get(idCarpeta).nombre : 'Sin Asignar';
   seleccionados.clear(); filtrarDatos(); renderizarTabla(); renderizarCarpetas(); actualizarEstadisticas();
   mostrarToast(`✅ ${idxs.length} → "${nombre}"`);
-  programarAutoguardado();
+  programarAutoguardado(); actualizarProgresoDepuracion();
 }
 
 function asignarSeleccionadosA(idCarpeta) {
@@ -62,7 +62,7 @@ function asignarSeleccionadosA(idCarpeta) {
   const nombre = carpetas.get(idCarpeta).nombre;
   seleccionados.clear(); filtrarDatos(); renderizarTabla(); renderizarCarpetas(); actualizarEstadisticas();
   mostrarToast(`✅ ${idxs.length} → "${nombre}"`);
-  programarAutoguardado();
+  programarAutoguardado(); actualizarProgresoDepuracion();
 }
 
 function filtrarPorCarpeta(id) {
