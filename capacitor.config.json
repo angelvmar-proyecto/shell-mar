@@ -1,0 +1,11 @@
+{
+  "appId": "com.angelvmar.filtrador",
+  "appName": "Filtrador MAR",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

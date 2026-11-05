@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Filtrador MAR</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>🔍 Filtrador Pro <button onclick="mostrarAyuda()" class="btn-ayuda">❓</button></h2>
+
+    <div class="info-banner" id="bannerInfo">
+      💡 Carga tu Excel. Todas las hojas se unen. La columna <strong>📄 Hoja Origen</strong> te dice de dónde vino cada fila.
+    </div>
+
+    <div class="toolbar">
+      <input type="file" id="fileInput" accept=".xlsx,.xls">
+      <select id="columnaNombre"><option value="">Columna Nombre</option></select>
+      <button onclick="detectarCadenas()" id="btnCadenas" disabled>🔗 Cadenas</button>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="🔍 Riu AND Cancún | Riu OR Marriott | Riu NOT Cancún" disabled>
+      <button onclick="limpiarTodo()" id="btnLimpiar" disabled>✕ Limpiar</button>
+      <button onclick="toggleGlobal()" id="btnGlobal" disabled>🌐 Global</button>
+      <button onclick="toggleDifusa()" id="btnDifusa" disabled>🔤 Difusa</button>
+    </div>
+
+    <div id="filtrosActivos"></div>
+
+    <div class="carpetas-panel" id="carpetasPanel" style="display:none;">
+      <h3>📁 Carpetas <small>(1 carpeta = 1 hoja al exportar)</small></h3>
+      <div class="carpetas-lista" id="carpetasLista"></div>
+      <div class="carpeta-toolbar">
+        <input type="text" id="nuevaCarpetaInput" placeholder="Nombre (ej: VERIFICADOS, AIRBNB LOW COST)" onkeydown="if(event.key==='Enter')crearCarpeta()">
+        <button onclick="crearCarpeta()" class="btn-add">➕ Crear</button>
+        <button onclick="moverSeleccionadosA('')" id="btnMoverSin" class="btn-mover" disabled>⬅️ Sin Asignar</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button onclick="mostrarDuplicados()" id="btnDuplicados" disabled>🔁 Duplicados</button>
+      <button onclick="guardarVista()" id="btnGuardarVista" disabled>💾 Guardar Vista</button>
+      <button onclick="cargarVista()" id="btnCargarVista" disabled>📂 Cargar Vista</button>
+      <button onclick="editarMasiva()" id="btnEditarMasiva" disabled>✏️ Edición Masiva</button>
+    </div>
+
+    <div class="toolbar">
+      <button onclick="seleccionarTodos()" id="btnSelTodos" disabled>☑️ Todos</button>
+      <button onclick="deseleccionarTodos()" id="btnDeselTodos" disabled>⬜ Ninguno</button>
+      <button onclick="eliminarSeleccionados()" id="btnEliminar" class="btn-danger" disabled>🗑️ Eliminar</button>
+      <button onclick="exportarFiltrados()" id="btnExportar" class="btn-success" disabled>📥 Exportar Filtrados</button>
+      <button onclick="exportarPorCarpetas()" id="btnExportarCarpetas" class="btn-purple" disabled>📦 Exportar Carpetas</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat">Total: <strong id="totalRegistros">0</strong></div>
+      <div class="stat">Filtrados: <strong id="totalFiltrados">0</strong></div>
+      <div class="stat">Seleccionados: <strong id="totalSeleccionados">0</strong></div>
+      <div class="stat">Duplicados: <strong id="totalDuplicados">0</strong></div>
+      <div class="stat">Carpetas: <strong id="totalCarpetas">0</strong></div>
+    </div>
+
+    <div class="table-container">
+      <table id="tablaResultados">
+        <thead><tr id="tablaHeader"></tr></thead>
+        <tbody id="tablaBody"><tr><td colspan="10" class="empty">Carga un Excel para comenzar</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="modalAyuda" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarAyuda()">&times;</span>
+      <h3>📖 Guía Rápida</h3>
+      <div class="help-section">
+        <h4>📚 Hojas del Excel</h4>
+        <p>Todas las hojas se unen en una sola tabla. Filtra por <strong>📄 Hoja Origen</strong> con el botón 🔽 de la columna.</p>
+      </div>
+      <div class="help-section">
+        <h4>🔽 Filtro por Columna</h4>
+        <p>Clic en <strong>🔽</strong> junto a cualquier encabezado. Marca valores y pulsa Aplicar.</p>
+      </div>
+      <div class="help-section">
+        <h4>📁 Carpetas</h4>
+        <p>Selecciona filas → clic en 📥 de una carpeta. Al exportar, cada carpeta es una hoja.</p>
+      </div>
+      <div class="help-section">
+        <h4>⌨️ Atajos</h4>
+        <p><code>Ctrl+F</code> buscar · <code>Escape</code> cerrar paneles</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/modules/utils.js"></script>
+  <script src="js/modules/carpetas.js"></script>
+  <script src="js/modules/filtros.js"></script>
+  <script src="js/modules/tabla.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

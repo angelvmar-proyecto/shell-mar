@@ -1,0 +1,20 @@
+{
+  "name": "filtrador-mar",
+  "version": "3.0.0",
+  "description": "Filtrador Pro de Hoteles - MAR Caribe",
+  "main": "www/index.html",
+  "scripts": {
+    "build": "echo 'No build needed for vanilla JS'",
+    "cap:init": "npx cap init 'Filtrador MAR' 'com.angelvmar.filtrador' --web-dir www",
+    "cap:add": "npx cap add android",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0"
+  }
+}
