@@ -97,3 +97,12 @@ th.con-filtro { background:#f0ebff !important; }
 .progreso-info strong { color:#6f42c1; }
 .progreso-barra-bg { width:100%; height:12px; background:#e9ecef; border-radius:6px; overflow:hidden; }
 .progreso-barra-fill { height:100%; background:linear-gradient(90deg, #6f42c1, #28a745); transition:width .3s ease; border-radius:6px; }
+
+/* Paginación */
+.paginacion { display:flex; justify-content:center; align-items:center; gap:12px; margin-top:12px; padding:10px; background:#f8f9fa; border:1px solid #dee2e6; border-radius:6px; font-size:.9em; }
+.paginacion button { padding:8px 16px; background:#0056b3; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold; }
+.paginacion button:disabled { background:#ccc; cursor:not-allowed; }
+.paginacion span { font-weight:bold; color:#333; }
+
+/* Vista compacta */
+body.vista-compacta .col-oculta { display:none !important; }

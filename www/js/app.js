@@ -45,6 +45,7 @@ document.getElementById('searchInput').addEventListener('input', function() { te
 
 // ===== FILTRADO PRINCIPAL =====
 function filtrarDatos() {
+  paginaActual = 1;
   datosFiltrados = [...datosOriginales];
   if(carpetaActivaFiltro) {
     if(carpetaActivaFiltro==='__SIN_ASIGNAR__') datosFiltrados = datosFiltrados.filter((_,i)=>!asignaciones.has(i));
@@ -178,7 +179,7 @@ function actualizarEstadisticas() {
 }
 
 function habilitarBotones() {
-  ['searchInput','btnLimpiar','btnGlobal','btnDifusa','btnDuplicados','btnGuardarVista','btnCargarVista','btnEditarMasiva','btnSelTodos','btnDeselTodos','btnEliminar','btnExportar','btnCadenas','btnExportarCarpetas','btnExportarSesion','btnImportarSesion','btnReiniciar','btnUndo'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
+  ['searchInput','btnLimpiar','btnGlobal','btnDifusa','btnDuplicados','btnGuardarVista','btnCargarVista','btnEditarMasiva','btnSelTodos','btnDeselTodos','btnEliminar','btnExportar','btnCadenas','btnExportarCarpetas','btnExportarSesion','btnImportarSesion','btnReiniciar','btnUndo','btnVista'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
   actualizarBotonUndo();
 }
 

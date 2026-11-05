@@ -45,6 +45,7 @@
       <button onclick="limpiarTodo()" id="btnLimpiar" disabled>✕ Limpiar</button>
       <button onclick="toggleGlobal()" id="btnGlobal" disabled>🌐 Global</button>
       <button onclick="toggleDifusa()" id="btnDifusa" disabled>🔤 Difusa</button>
+      <button onclick="toggleVistaCompacta()" id="btnVista" disabled>👁️ Vista Compacta</button>
     </div>
 
     <div id="filtrosActivos"></div>
@@ -88,6 +89,14 @@
         <tbody id="tablaBody"><tr><td colspan="10" class="empty">Carga un Excel para comenzar</td></tr></tbody>
       </table>
     </div>
+
+    <!-- PAGINACIÓN -->
+    <div class="paginacion" id="paginacionPanel" style="display:none;">
+      <button onclick="cambiarPagina(-1)" id="btnPagAnt">⬅️ Anterior</button>
+      <span id="paginacionInfo">Página 1</span>
+      <button onclick="cambiarPagina(1)" id="btnPagSig">Siguiente ➡️</button>
+    </div>
+
   </div>
 
   <div id="modalAyuda" class="modal">
@@ -96,7 +105,7 @@
       <h3>📖 Guía Rápida</h3>
       <div class="help-section">
         <h4>⌨️ Atajos de teclado</h4>
-        <p><code>1</code> a <code>9</code> asignar a carpeta correspondiente · <code>A</code> Todos · <code>N</code> Ninguno · <code>D</code> Duplicados · <code>Ctrl+Z</code> Deshacer · <code>Ctrl+F</code> Buscar</p>
+        <p><code>1</code> a <code>9</code> asignar a carpeta · <code>A</code> Todos · <code>N</code> Ninguno · <code>D</code> Duplicados · <code>Ctrl+Z</code> Deshacer · <code>Ctrl+F</code> Buscar</p>
       </div>
     </div>
   </div>
