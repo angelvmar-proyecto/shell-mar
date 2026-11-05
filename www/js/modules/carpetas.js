@@ -9,27 +9,33 @@ function crearCarpeta() {
   const nombre = input.value.trim();
   if(!nombre) { alert('Escribe un nombre'); return; }
   for(const [,c] of carpetas) if(c.nombre.toLowerCase()===nombre.toLowerCase()) { alert('Ya existe'); return; }
+  guardarParaDeshacer('crear carpeta');
   const id = 'carpeta_'+(++contadorCarpetas);
   carpetas.set(id, { nombre, color: COLORES_CARPETAS[(contadorCarpetas-1)%COLORES_CARPETAS.length] });
   input.value = '';
   renderizarCarpetas(); renderizarTabla(); actualizarEstadisticas();
+  programarAutoguardado();
 }
 
 function eliminarCarpeta(id) {
   const c = carpetas.get(id); if(!c) return;
   const n = contarRegistrosEnCarpeta(id);
   if(!confirm(`¿Eliminar "${c.nombre}"? ${n} registros volverán a Sin Asignar.`)) return;
+  guardarParaDeshacer('eliminar carpeta');
   for(const [idx,cid] of Array.from(asignaciones)) if(cid===id) asignaciones.delete(idx);
   carpetas.delete(id);
   if(carpetaActivaFiltro===id) carpetaActivaFiltro=null;
   filtrarDatos(); renderizarCarpetas(); renderizarTabla(); actualizarEstadisticas();
+  programarAutoguardado();
 }
 
 function renombrarCarpeta(id) {
   const c = carpetas.get(id); if(!c) return;
   const n = prompt('Nuevo nombre:', c.nombre); if(!n||!n.trim()) return;
   for(const [cid,cc] of carpetas) if(cid!==id && cc.nombre.toLowerCase()===n.toLowerCase().trim()) { alert('Ya existe'); return; }
+  guardarParaDeshacer('renombrar carpeta');
   c.nombre = n.trim(); renderizarCarpetas(); renderizarTabla();
+  programarAutoguardado();
 }
 
 function contarRegistrosEnCarpeta(id) { let n=0; for(const [,cid] of asignaciones) if(cid===id) n++; return n; }
@@ -37,22 +43,26 @@ function contarSinAsignar() { let n=0; datosOriginales.forEach((_,idx)=>{ if(!as
 
 function moverSeleccionadosA(idCarpeta) {
   if(!seleccionados.size) { alert('Selecciona registros primero'); return; }
+  guardarParaDeshacer('mover a sin asignar');
   const idxs = [];
   seleccionados.forEach(i => { const item = datosFiltrados[i]; const oi = datosOriginales.indexOf(item); if(oi!==-1) idxs.push(oi); });
   idxs.forEach(i => { if(idCarpeta) asignaciones.set(i, idCarpeta); else asignaciones.delete(i); });
   const nombre = idCarpeta ? carpetas.get(idCarpeta).nombre : 'Sin Asignar';
   seleccionados.clear(); filtrarDatos(); renderizarTabla(); renderizarCarpetas(); actualizarEstadisticas();
   mostrarToast(`✅ ${idxs.length} → "${nombre}"`);
+  programarAutoguardado();
 }
 
 function asignarSeleccionadosA(idCarpeta) {
   if(!seleccionados.size) { alert('Selecciona registros primero'); return; }
+  guardarParaDeshacer('asignar a carpeta');
   const idxs = [];
   seleccionados.forEach(i => { const item = datosFiltrados[i]; const oi = datosOriginales.indexOf(item); if(oi!==-1) idxs.push(oi); });
   idxs.forEach(i => asignaciones.set(i, idCarpeta));
   const nombre = carpetas.get(idCarpeta).nombre;
   seleccionados.clear(); filtrarDatos(); renderizarTabla(); renderizarCarpetas(); actualizarEstadisticas();
   mostrarToast(`✅ ${idxs.length} → "${nombre}"`);
+  programarAutoguardado();
 }
 
 function filtrarPorCarpeta(id) {

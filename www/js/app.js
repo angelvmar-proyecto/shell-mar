@@ -4,7 +4,7 @@ let filtrosActivos = [], cadenasDetectadas = {}, vistasGuardadas = {}, columnaOr
 
 const CADENAS_HOTELERAS = ['riu','marriott','hilton','hyatt','radisson','westin','sheraton','fiesta americana','hampton inn','holiday inn','intercontinental','xcaret','royal caribbean','sandos','barceló','iberostar','melia','secrets','dreams','sunwing','air canada','transat','bahia principe'];
 
-// ===== CARGA DE EXCEL (Escenario B) =====
+// ===== CARGA DE EXCEL =====
 document.getElementById('fileInput').addEventListener('change', function(e) {
   const file = e.target.files[0]; if(!file) return;
   const reader = new FileReader();
@@ -33,6 +33,7 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
       const res = info.map(h=>`• ${h.nombre}: ${h.filas}`).join('\n');
       mostrarToast(`📚 ${info.length} hojas · ${filas.length} registros`, 4000);
       setTimeout(()=>alert(`✅ ${info.length} hojas unidas:\n\n${res}\n\nTotal: ${filas.length} registros`), 100);
+      ejecutarAutoguardado(); // Guardar inmediatamente al cargar
     } catch(err) { alert('Error: '+err.message); }
   };
   reader.readAsArrayBuffer(file);
@@ -111,13 +112,16 @@ function editarMasiva() {
   if(!seleccionados.size) { alert('Selecciona registros'); return; }
   const col = prompt('Columna a editar:\n' + columnas.join('\n')); if(!col||!columnas.includes(col)) return;
   const val = prompt(`Nuevo valor para "${col}":`); if(val===null) return;
+  guardarParaDeshacer('edición masiva');
   seleccionados.forEach(i => { const item=datosFiltrados[i]; const oi=datosOriginales.indexOf(item); if(oi!==-1) datosOriginales[oi][col]=val; });
   filtrarDatos(); renderizarTabla(); alert(`✅ ${seleccionados.size} actualizados`);
+  programarAutoguardado();
 }
 
 function eliminarSeleccionados() {
   if(!seleccionados.size) return;
   if(!confirm(`¿Eliminar ${seleccionados.size} registros?`)) return;
+  guardarParaDeshacer('eliminar registros');
   const idxs = new Set(); seleccionados.forEach(i => { const item=datosFiltrados[i]; const oi=datosOriginales.indexOf(item); if(oi!==-1) idxs.add(oi); });
   const sorted = Array.from(idxs).sort((a,b)=>b-a);
   const mapa = new Map(); let n=0;
@@ -127,6 +131,7 @@ function eliminarSeleccionados() {
   asignaciones = nuevas; seleccionados.clear();
   filtrarDatos(); renderizarTabla(); actualizarEstadisticas(); detectarDuplicados(); renderizarCarpetas();
   mostrarToast(`✅ ${sorted.length} eliminados`);
+  programarAutoguardado();
 }
 
 // ===== EXPORTAR =====
@@ -163,7 +168,8 @@ function actualizarEstadisticas() {
 }
 
 function habilitarBotones() {
-  ['searchInput','btnLimpiar','btnGlobal','btnDifusa','btnDuplicados','btnGuardarVista','btnCargarVista','btnEditarMasiva','btnSelTodos','btnDeselTodos','btnEliminar','btnExportar','btnCadenas','btnExportarCarpetas'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
+  ['searchInput','btnLimpiar','btnGlobal','btnDifusa','btnDuplicados','btnGuardarVista','btnCargarVista','btnEditarMasiva','btnSelTodos','btnDeselTodos','btnEliminar','btnExportar','btnCadenas','btnExportarCarpetas','btnExportarSesion','btnImportarSesion','btnReiniciar','btnUndo'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
+  actualizarBotonUndo();
 }
 
 function mostrarAyuda() { document.getElementById('modalAyuda').style.display='block'; }
@@ -173,8 +179,16 @@ try { const s=localStorage.getItem('vistasGuardadas'); if(s) vistasGuardadas=JSO
 
 document.addEventListener('keydown', function(e) {
   if(e.ctrlKey && e.key==='f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
+  else if(e.ctrlKey && e.key==='z') { e.preventDefault(); deshacer(); }
   else if(e.key==='Escape') { cerrarPanelFiltro(); cerrarAyuda(); }
 });
 
+// ===== INICIALIZACIÓN =====
+(async function initApp() {
+  await initDB();
+  // Ofrecer reanudar sesión anterior si existe
+  setTimeout(() => { ofrecerReanudarSesion(); }, 500);
+})();
+
 // Exponer al window
-Object.assign(window, { crearCarpeta, eliminarCarpeta, renombrarCarpeta, filtrarPorCarpeta, asignarSeleccionadosA, moverSeleccionadosA, exportarPorCarpetas, abrirFiltroColumna, cerrarPanelFiltro, filtrarListaValores, marcarTodosValores, aplicarFiltroColumna, limpiarFiltroColumna, limpiarTodo, toggleGlobal, toggleDifusa, mostrarDuplicados, detectarCadenas, guardarVista, cargarVista, editarMasiva, eliminarSeleccionados, seleccionarTodos, deseleccionarTodos, toggleSeleccion, ordenarPor, exportarFiltrados, mostrarAyuda, cerrarAyuda, filtrarDatos, renderizarTabla, renderizarCarpetas, actualizarEstadisticas, renderizarFiltrosActivos });
+Object.assign(window, { crearCarpeta, eliminarCarpeta, renombrarCarpeta, filtrarPorCarpeta, asignarSeleccionadosA, moverSeleccionadosA, exportarPorCarpetas, abrirFiltroColumna, cerrarPanelFiltro, filtrarListaValores, marcarTodosValores, aplicarFiltroColumna, limpiarFiltroColumna, limpiarTodo, toggleGlobal, toggleDifusa, mostrarDuplicados, detectarCadenas, guardarVista, cargarVista, editarMasiva, eliminarSeleccionados, seleccionarTodos, deseleccionarTodos, toggleSeleccion, ordenarPor, exportarFiltrados, mostrarAyuda, cerrarAyuda, filtrarDatos, renderizarTabla, renderizarCarpetas, actualizarEstadisticas, renderizarFiltrosActivos, deshacer });

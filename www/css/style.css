@@ -85,3 +85,8 @@ th.con-filtro { background:#f0ebff !important; }
   .toolbar input[type="text"] { min-width:auto; }
   .stat { flex:1 1 30%; text-align:center; }
 }
+
+/* Sesión y deshacer */
+.toolbar-sesion { background: #e7f3ff; border: 1px solid #b6d4fe; }
+.toolbar-sesion button { background: #0d6efd; }
+.toolbar-sesion button:hover { background: #0b5ed7; }

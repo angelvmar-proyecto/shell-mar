@@ -21,6 +21,14 @@
       <button onclick="detectarCadenas()" id="btnCadenas" disabled>🔗 Cadenas</button>
     </div>
 
+    <div class="toolbar toolbar-sesion">
+      <button onclick="exportarSesionJSON()" id="btnExportarSesion" disabled title="Guardar sesión completa">💾 Guardar Sesión</button>
+      <button onclick="document.getElementById('fileSesion').click()" id="btnImportarSesion" disabled title="Cargar sesión desde archivo">📂 Cargar Sesión</button>
+      <input type="file" id="fileSesion" accept=".json" style="display:none" onchange="importarSesionJSON(event)">
+      <button onclick="deshacer()" id="btnUndo" disabled>↩️ Deshacer</button>
+      <button onclick="reiniciarSesion()" id="btnReiniciar" class="btn-danger" disabled title="Borrar todo y empezar de cero">🔄 Reiniciar</button>
+    </div>
+
     <div class="toolbar">
       <input type="text" id="searchInput" placeholder="🔍 Riu AND Cancún | Riu OR Marriott | Riu NOT Cancún" disabled>
       <button onclick="limpiarTodo()" id="btnLimpiar" disabled>✕ Limpiar</button>
@@ -76,28 +84,27 @@
       <span class="close" onclick="cerrarAyuda()">&times;</span>
       <h3>📖 Guía Rápida</h3>
       <div class="help-section">
-        <h4>📚 Hojas del Excel</h4>
-        <p>Todas las hojas se unen en una sola tabla. Filtra por <strong>📄 Hoja Origen</strong> con el botón 🔽 de la columna.</p>
+        <h4>💾 Sesiones</h4>
+        <p>El trabajo se guarda automáticamente cada 5 segundos. Al cerrar y volver a abrir, te preguntará si quieres reanudar. También puedes exportar la sesión completa a un archivo .json para hacer backup.</p>
       </div>
       <div class="help-section">
-        <h4>🔽 Filtro por Columna</h4>
-        <p>Clic en <strong>🔽</strong> junto a cualquier encabezado. Marca valores y pulsa Aplicar.</p>
-      </div>
-      <div class="help-section">
-        <h4>📁 Carpetas</h4>
-        <p>Selecciona filas → clic en 📥 de una carpeta. Al exportar, cada carpeta es una hoja.</p>
+        <h4>↩️ Deshacer</h4>
+        <p>Puedes deshacer las últimas 20 acciones (asignaciones, eliminaciones, ediciones masivas). Atajo: <code>Ctrl+Z</code></p>
       </div>
       <div class="help-section">
         <h4>⌨️ Atajos</h4>
-        <p><code>Ctrl+F</code> buscar · <code>Escape</code> cerrar paneles</p>
+        <p><code>Ctrl+F</code> buscar · <code>Ctrl+Z</code> deshacer · <code>Escape</code> cerrar</p>
       </div>
     </div>
   </div>
 
   <script src="js/modules/utils.js"></script>
+  <script src="js/modules/db.js"></script>
+  <script src="js/modules/historial.js"></script>
   <script src="js/modules/carpetas.js"></script>
   <script src="js/modules/filtros.js"></script>
   <script src="js/modules/tabla.js"></script>
+  <script src="js/modules/sesion.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
