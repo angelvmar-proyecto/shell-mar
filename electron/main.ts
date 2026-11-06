@@ -1,14 +1,14 @@
 import { app, BrowserWindow } from 'electron';
 import { createCapacitorElectronApp } from '@capawesome/capacitor-electron';
 
-// Aumentar el límite de memoria para V8 (evita cuelgues con Excel grandes)
+// Aumentar el límite de memoria para V8
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
-
-let mainWindow: BrowserWindow | undefined;
 
 app.whenReady().then(() => {
   const capApp = createCapacitorElectronApp();
-  mainWindow = capApp.mainWindow;
+  
+  // Usar el método getMainWindow() en lugar de la propiedad mainWindow
+  const mainWindow: BrowserWindow | undefined = capApp.getMainWindow();
 
   // Forzar que la ventana se muestre y se traiga al frente
   if (mainWindow) {
