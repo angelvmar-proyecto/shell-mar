@@ -7,8 +7,8 @@ const COLORES_CARPETAS = ['#6f42c1','#28a745','#dc3545','#fd7e14','#17a2b8','#e8
 function crearCarpeta() {
   const input = document.getElementById('nuevaCarpetaInput');
   const nombre = input.value.trim();
-  if(!nombre) { alert('Escribe un nombre'); return; }
-  for(const [,c] of carpetas) if(c.nombre.toLowerCase()===nombre.toLowerCase()) { alert('Ya existe'); return; }
+  if(!nombre) { alertSeguro('Escribe un nombre'); return; }
+  for(const [,c] of carpetas) if(c.nombre.toLowerCase()===nombre.toLowerCase()) { alertSeguro('Ya existe'); return; }
   guardarParaDeshacer('crear carpeta');
   const id = 'carpeta_'+(++contadorCarpetas);
   carpetas.set(id, { nombre, color: COLORES_CARPETAS[(contadorCarpetas-1)%COLORES_CARPETAS.length] });
@@ -32,7 +32,7 @@ function eliminarCarpeta(id) {
 function renombrarCarpeta(id) {
   const c = carpetas.get(id); if(!c) return;
   const n = prompt('Nuevo nombre:', c.nombre); if(!n||!n.trim()) return;
-  for(const [cid,cc] of carpetas) if(cid!==id && cc.nombre.toLowerCase()===n.toLowerCase().trim()) { alert('Ya existe'); return; }
+  for(const [cid,cc] of carpetas) if(cid!==id && cc.nombre.toLowerCase()===n.toLowerCase().trim()) { alertSeguro('Ya existe'); return; }
   guardarParaDeshacer('renombrar carpeta');
   c.nombre = n.trim(); renderizarCarpetas(); renderizarTabla();
   programarAutoguardado(); actualizarProgresoDepuracion();
@@ -42,7 +42,7 @@ function contarRegistrosEnCarpeta(id) { let n=0; for(const [,cid] of asignacione
 function contarSinAsignar() { let n=0; datosOriginales.forEach((_,idx)=>{ if(!asignaciones.has(idx)) n++; }); return n; }
 
 function moverSeleccionadosA(idCarpeta) {
-  if(!seleccionados.size) { alert('Selecciona registros primero'); return; }
+  if(!seleccionados.size) { alertSeguro('Selecciona registros primero'); return; }
   guardarParaDeshacer('mover a sin asignar');
   const idxs = [];
   seleccionados.forEach(i => { const item = datosFiltrados[i]; const oi = datosOriginales.indexOf(item); if(oi!==-1) idxs.push(oi); });
@@ -54,7 +54,7 @@ function moverSeleccionadosA(idCarpeta) {
 }
 
 function asignarSeleccionadosA(idCarpeta) {
-  if(!seleccionados.size) { alert('Selecciona registros primero'); return; }
+  if(!seleccionados.size) { alertSeguro('Selecciona registros primero'); return; }
   guardarParaDeshacer('asignar a carpeta');
   const idxs = [];
   seleccionados.forEach(i => { const item = datosFiltrados[i]; const oi = datosOriginales.indexOf(item); if(oi!==-1) idxs.push(oi); });

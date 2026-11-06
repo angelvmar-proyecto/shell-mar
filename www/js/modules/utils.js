@@ -40,3 +40,36 @@ function actualizarProgresoDepuracion() {
   document.getElementById('progresoTexto').textContent = `${porcentaje}% (${asignados}/${total})`;
   document.getElementById('progresoFill').style.width = porcentaje + '%';
 }
+
+// Reemplazo de alert() para evitar bloqueos en Electron
+window.alertSeguro = function(mensaje) {
+  mostrarToast(mensaje, 4000);
+};
+
+// Reemplazo de confirm() para evitar bloqueos en Electron
+window.confirmarSeguro = function(mensaje, callback) {
+  // Creamos un modal rápido en HTML
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.display = 'block';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:400px; text-align:center;">
+      <h3 style="color:#0056b3;">Confirmación</h3>
+      <p style="white-space:pre-wrap;">${escapeHtml(mensaje)}</p>
+      <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+        <button id="btnConfirmSi" style="background:#28a745; color:white; padding:10px 20px; border:none; border-radius:4px; cursor:pointer;">Sí, continuar</button>
+        <button id="btnConfirmNo" style="background:#dc3545; color:white; padding:10px 20px; border:none; border-radius:4px; cursor:pointer;">Cancelar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  
+  modal.querySelector('#btnConfirmSi').onclick = () => {
+    document.body.removeChild(modal);
+    callback(true);
+  };
+  modal.querySelector('#btnConfirmNo').onclick = () => {
+    document.body.removeChild(modal);
+    callback(false);
+  };
+};

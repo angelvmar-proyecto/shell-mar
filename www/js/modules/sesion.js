@@ -141,7 +141,7 @@ async function reiniciarSesion() {
 
 function exportarSesionJSON() {
   if (!datosOriginales.length) {
-    alert('No hay datos cargados para exportar');
+    alertSeguro('No hay datos cargados para exportar');
     return;
   }
   
@@ -177,7 +177,7 @@ function importarSesionJSON(event) {
     try {
       const estado = JSON.parse(e.target.result);
       if (!estado.datosOriginales || !estado.version) {
-        alert('Archivo de sesión inválido');
+        alertSeguro('Archivo de sesión inválido');
         return;
       }
       if (!confirm(`¿Cargar sesión del ${new Date(estado.fecha).toLocaleString()}?\n\nSe perderá el trabajo actual.`)) return;
@@ -185,7 +185,7 @@ function importarSesionJSON(event) {
       reanudarSesion(estado);
       ejecutarAutoguardado();
     } catch (err) {
-      alert('Error al leer archivo: ' + err.message);
+      alertSeguro('Error al leer archivo: ' + err.message);
     }
   };
   reader.readAsText(file);

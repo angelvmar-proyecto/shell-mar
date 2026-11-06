@@ -18,7 +18,7 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
         json.forEach(r => { r['_hoja_origen'] = nh; filas.push(r); });
         info.push({nombre:nh, filas:json.length});
       });
-      if(!filas.length) { alert('Sin datos en ninguna hoja'); return; }
+      if(!filas.length) { alertSeguro('Sin datos en ninguna hoja'); return; }
       const setC = new Set(); filas.forEach(r => Object.keys(r).forEach(c => setC.add(c)));
       columnas = ['_hoja_origen', ...Array.from(setC).filter(c=>c!=='_hoja_origen')];
       datosOriginales = filas;
@@ -32,10 +32,10 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
       document.getElementById('carpetasPanel').style.display='block';
       const res = info.map(h=>`• ${h.nombre}: ${h.filas}`).join('\n');
       mostrarToast(`📚 ${info.length} hojas · ${filas.length} registros`, 4000);
-      setTimeout(()=>alert(`✅ ${info.length} hojas unidas:\n\n${res}\n\nTotal: ${filas.length} registros`), 100);
+      setTimeout(()=>alertSeguro(`✅ ${info.length} hojas unidas:\n\n${res}\n\nTotal: ${filas.length} registros`), 100);
       ejecutarAutoguardado();
       actualizarProgresoDepuracion();
-    } catch(err) { alert('Error: '+err.message); }
+    } catch(err) { alertSeguro('Error: '+err.message); }
   };
   reader.readAsArrayBuffer(file);
 });
@@ -73,12 +73,12 @@ function detectarDuplicados() {
   ns.forEach((n,i) => { if(n && ns.filter(x=>x===n).length>1) duplicados.add(i); });
   document.getElementById('totalDuplicados').textContent = duplicados.size;
 }
-function mostrarDuplicados() { if(!duplicados.size) { alert('No hay duplicados'); return; } datosFiltrados = datosOriginales.filter((_,i)=>duplicados.has(i)); renderizarTabla(); actualizarEstadisticas(); }
+function mostrarDuplicados() { if(!duplicados.size) { alertSeguro('No hay duplicados'); return; } datosFiltrados = datosOriginales.filter((_,i)=>duplicados.has(i)); renderizarTabla(); actualizarEstadisticas(); }
 function detectarCadenas() {
   cadenasDetectadas = {};
   datosOriginales.forEach(r => { const n = String(r[columnaNombre]||'').toLowerCase(); CADENAS_HOTELERAS.forEach(c => { if(n.includes(c)) { if(!cadenasDetectadas[c]) cadenasDetectadas[c]=[]; cadenasDetectadas[c].push(r); } }); });
   const total = Object.values(cadenasDetectadas).reduce((s,a)=>s+a.length,0);
-  alert(`✅ ${Object.keys(cadenasDetectadas).length} cadenas en ${total} hoteles`);
+  alertSeguro(`✅ ${Object.keys(cadenasDetectadas).length} cadenas en ${total} hoteles`);
   renderizarTabla();
 }
 
@@ -94,7 +94,7 @@ function limpiarTodo() {
 
 // ===== ESTADÍSTICAS =====
 function mostrarEstadisticas() {
-  if (!datosOriginales.length) { alert('Carga datos primero'); return; }
+  if (!datosOriginales.length) { alertSeguro('Carga datos primero'); return; }
   
   const modal = document.getElementById('modalEstadisticas');
   const cont = document.getElementById('contenidoEstadisticas');
@@ -160,10 +160,10 @@ function cerrarEstadisticas() { document.getElementById('modalEstadisticas').sty
 function guardarVista() {
   const n = prompt('Nombre de la vista:'); if(!n) return;
   vistasGuardadas[n] = { terminoBusqueda, busquedaGlobal, busquedaDifusa, filtrosActivos:[...filtrosActivos], filtrosColumna: Array.from(filtrosColumna.entries()).map(([c,s])=>[c,Array.from(s)]) };
-  localStorage.setItem('vistasGuardadas', JSON.stringify(vistasGuardadas)); alert('✅ Guardada');
+  localStorage.setItem('vistasGuardadas', JSON.stringify(vistasGuardadas)); alertSeguro('✅ Guardada');
 }
 function cargarVista() {
-  const vs = Object.keys(vistasGuardadas); if(!vs.length) { alert('No hay vistas'); return; }
+  const vs = Object.keys(vistasGuardadas); if(!vs.length) { alertSeguro('No hay vistas'); return; }
   const n = prompt(`Vistas:\n${vs.join('\n')}\n\nNombre:`); if(!n||!vistasGuardadas[n]) return;
   const v = vistasGuardadas[n]; terminoBusqueda=v.terminoBusqueda||''; busquedaGlobal=!!v.busquedaGlobal; busquedaDifusa=!!v.busquedaDifusa; filtrosActivos=v.filtrosActivos||[];
   filtrosColumna.clear(); if(v.filtrosColumna) v.filtrosColumna.forEach(([c,a])=>filtrosColumna.set(c,new Set(a)));
@@ -175,12 +175,12 @@ function cargarVista() {
 
 // ===== EDICIÓN MASIVA =====
 function editarMasiva() {
-  if(!seleccionados.size) { alert('Selecciona registros'); return; }
+  if(!seleccionados.size) { alertSeguro('Selecciona registros'); return; }
   const col = prompt('Columna a editar:\n' + columnas.join('\n')); if(!col||!columnas.includes(col)) return;
   const val = prompt(`Nuevo valor para "${col}":`); if(val===null) return;
   guardarParaDeshacer('edición masiva');
   seleccionados.forEach(i => { const item=datosFiltrados[i]; const oi=datosOriginales.indexOf(item); if(oi!==-1) datosOriginales[oi][col]=val; });
-  filtrarDatos(); renderizarTabla(); alert(`✅ ${seleccionados.size} actualizados`);
+  filtrarDatos(); renderizarTabla(); alertSeguro(`✅ ${seleccionados.size} actualizados`);
   programarAutoguardado();
 }
 
@@ -189,7 +189,7 @@ function eliminarSeleccionados() {
   
   if (seleccionados.size > 50) {
     const texto = prompt(`⚠️ Vas a eliminar ${seleccionados.size} registros de golpe.\n\nEscribe "BORRAR" para confirmar:`);
-    if (texto !== 'BORRAR') { alert('Eliminación cancelada'); return; }
+    if (texto !== 'BORRAR') { alertSeguro('Eliminación cancelada'); return; }
   } else {
     if(!confirm(`¿Eliminar ${seleccionados.size} registros?`)) return;
   }
@@ -209,7 +209,7 @@ function eliminarSeleccionados() {
 
 // ===== EXPORTAR (Ahora con formato) =====
 function exportarPorCarpetas() {
-  if(!carpetas.size) { alert('Crea carpetas primero'); return; }
+  if(!carpetas.size) { alertSeguro('Crea carpetas primero'); return; }
   const wb = XLSX.utils.book_new(); let hojas=0;
   
   for(const [id,c] of carpetas) {
@@ -228,13 +228,13 @@ function exportarPorCarpetas() {
     hojas++; 
   }
   
-  if(!hojas) { alert('Sin datos'); return; }
+  if(!hojas) { alertSeguro('Sin datos'); return; }
   XLSX.writeFile(wb, `carpetas_${fechaHoy()}.xlsx`);
-  alert(`✅ ${hojas} hojas exportadas`);
+  alertSeguro(`✅ ${hojas} hojas exportadas`);
 }
 
 function exportarFiltrados() {
-  if(!datosFiltrados.length) { alert('Sin datos'); return; }
+  if(!datosFiltrados.length) { alertSeguro('Sin datos'); return; }
   const wb = XLSX.utils.book_new(); 
   XLSX.utils.book_append_sheet(wb, crearHojaExcel(datosFiltrados), 'Filtrados'); // <-- Usa la nueva función con formato
   XLSX.writeFile(wb, `filtrados_${fechaHoy()}.xlsx`);
