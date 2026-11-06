@@ -30,6 +30,8 @@
     "files": [
       "dist/**/*",
       "generated/**/*",
+      "generated/**/*",
+      "generated/**/*",
       "app/**/*",
       "node_modules/**/*",
       "vendor/**/*",

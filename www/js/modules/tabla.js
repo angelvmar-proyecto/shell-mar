@@ -26,7 +26,6 @@ function renderizarTabla() {
   const fin = Math.min(inicio + FILAS_POR_PAGINA, datosFiltrados.length);
   const filasPagina = datosFiltrados.slice(inicio, fin);
 
-  // Actualizar controles de paginación
   const pagPanel = document.getElementById('paginacionPanel');
   if (datosFiltrados.length > FILAS_POR_PAGINA) {
     pagPanel.style.display = 'flex';
@@ -42,7 +41,6 @@ function renderizarTabla() {
     const sc = columnaOrden===col ? (ordenAscendente?'sorted-asc':'sorted-desc') : '';
     const tf = filtrosColumna.has(col) && filtrosColumna.get(col).size>0;
     const tit = col==='_hoja_origen' ? '📄 Hoja' : escapeHtml(col);
-    // Clase para ocultar en vista compacta (ocultamos columnas que no sean nombre, cadena o origen)
     const esImportante = col === columnaNombre || col === '_hoja_origen' || col.toLowerCase().includes('cadena') || col.toLowerCase().includes('zona');
     const claseOcultar = (vistaCompacta && !esImportante) ? 'col-oculta' : '';
 
@@ -57,7 +55,7 @@ function renderizarTabla() {
 
   let html = '';
   filasPagina.forEach((row, idxPag) => {
-    const idxGlobal = inicio + idxPag; // Índice real en datosFiltrados
+    const idxGlobal = inicio + idxPag;
     const sel = seleccionados.has(idxGlobal);
     const oi = datosOriginales.indexOf(row);
     const dup = duplicados.has(oi);
@@ -77,8 +75,13 @@ function renderizarTabla() {
         let badges = '';
         Object.keys(cadenasDetectadas).forEach(cd => { if(String(v).toLowerCase().includes(cd.toLowerCase())) badges += `<span class="chain-badge">${cd}</span>`; });
         if(carp) badges += `<span class="badge-carpeta" style="background:${carp.color}22;color:${carp.color};">📁 ${escapeHtml(carp.nombre)}</span>`;
+        
+        // ENLACE A GOOGLE MAPS
+        const nombreParaMaps = encodeURIComponent(String(v) + ', ' + (row['Zona'] || row['Ciudad'] || row['País'] || ''));
+        const linkMaps = `<a href="https://www.google.com/maps/search/?api=1&query=${nombreParaMaps}" target="_blank" class="btn-maps" title="Ver en Google Maps">📍</a>`;
+
         v = terminoBusqueda ? resaltarTexto(v, terminoBusqueda) : escapeHtml(v);
-        html += `<td class="${claseOcultar}">${v} ${badges}</td>`;
+        html += `<td class="${claseOcultar}"><div style="display:flex; align-items:center; gap:4px;">${linkMaps} <span>${v}</span></div> ${badges}</td>`;
       } else if(col==='_hoja_origen') {
         html += `<td class="${claseOcultar}"><span style="background:#e9ecef;padding:2px 6px;border-radius:6px;font-size:.85em;">📄 ${escapeHtml(v)}</span></td>`;
       } else html += `<td class="${claseOcultar}">${escapeHtml(v)}</td>`;
@@ -91,7 +94,7 @@ function renderizarTabla() {
 function ordenarPor(col) { 
   if(columnaOrden===col) ordenAscendente=!ordenAscendente; 
   else { columnaOrden=col; ordenAscendente=true; } 
-  paginaActual = 1; // Resetear a página 1 al ordenar
+  paginaActual = 1;
   filtrarDatos(); 
   renderizarTabla(); 
 }
@@ -117,7 +120,6 @@ function toggleSeleccion(idx) {
 }
 
 function seleccionarTodos() { 
-  // Selecciona solo los que están en la página actual para no colapsar el navegador
   const inicio = (paginaActual - 1) * FILAS_POR_PAGINA;
   const fin = Math.min(inicio + FILAS_POR_PAGINA, datosFiltrados.length);
   for(let i=inicio; i<fin; i++) seleccionados.add(i);
@@ -129,9 +131,5 @@ function deseleccionarTodos() {
   renderizarTabla(); actualizarEstadisticas(); renderizarCarpetas(); 
 }
 
-function irAPagina(p) { paginaActual = p; renderizarTabla(); }
-
-// Exponer al window
 window.toggleVistaCompacta = toggleVistaCompacta;
 window.cambiarPagina = cambiarPagina;
-window.irAPagina = irAPagina;
