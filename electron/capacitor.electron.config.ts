@@ -1,7 +1,5 @@
 import type { CapacitorElectronConfig } from '@capawesome/capacitor-electron/config';
 
-const config: CapacitorElectronConfig = {
-  // Dejar vacío. El appId se toma del package.json
-};
+const config: CapacitorElectronConfig = {};
 
 export default config;
