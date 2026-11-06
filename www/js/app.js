@@ -45,7 +45,7 @@ document.getElementById('searchInput').addEventListener('input', function() { te
 
 // ===== FILTRADO PRINCIPAL =====
 function filtrarDatos() {
-  paginaActual = 1;
+  paginaActual = 1; // Resetear a pág 1
   datosFiltrados = [...datosOriginales];
   if(carpetaActivaFiltro) {
     if(carpetaActivaFiltro==='__SIN_ASIGNAR__') datosFiltrados = datosFiltrados.filter((_,i)=>!asignaciones.has(i));
@@ -92,6 +92,70 @@ function limpiarTodo() {
   filtrarDatos(); renderizarTabla(); actualizarEstadisticas(); renderizarFiltrosActivos(); renderizarCarpetas();
 }
 
+// ===== ESTADÍSTICAS =====
+function mostrarEstadisticas() {
+  if (!datosOriginales.length) { alert('Carga datos primero'); return; }
+  
+  const modal = document.getElementById('modalEstadisticas');
+  const cont = document.getElementById('contenidoEstadisticas');
+  const total = datosOriginales.length;
+  
+  let html = `<p><strong>Total de registros:</strong> ${total}</p>`;
+  
+  // Progreso global
+  const asignados = asignaciones.size;
+  const porcentaje = Math.round((asignados/total)*100);
+  html += `<p><strong>Progreso de clasificación:</strong> ${porcentaje}% (${asignados}/${total})</p>`;
+  
+  // Desglose por carpeta
+  html += `<h4 style="color:#6f42c1;margin-top:20px;">📁 Desglose por Carpeta</h4><div class="stat-lista">`;
+  
+  // Sin asignar
+  const sin = total - asignados;
+  const pctSin = Math.round((sin/total)*100);
+  html += `<div class="stat-item" style="border-left-color:#6c757d;">
+    <div style="flex:1;">
+      <div class="nombre">📭 Sin Asignar</div>
+      <div class="stat-barra-bg"><div class="stat-barra-fill" style="width:${pctSin}%;background:#6c757d;"></div></div>
+    </div>
+    <div class="valor" style="margin-left:15px;">${sin} (${pctSin}%)</div>
+  </div>`;
+  
+  // Cada carpeta
+  carpetas.forEach((c, id) => {
+    const n = contarRegistrosEnCarpeta(id);
+    const pct = Math.round((n/total)*100);
+    html += `<div class="stat-item" style="border-left-color:${c.color};">
+      <div style="flex:1;">
+        <div class="nombre">📁 ${escapeHtml(c.nombre)}</div>
+        <div class="stat-barra-bg"><div class="stat-barra-fill" style="width:${pct}%;background:${c.color};"></div></div>
+      </div>
+      <div class="valor" style="margin-left:15px;">${n} (${pct}%)</div>
+    </div>`;
+  });
+  html += `</div>`;
+  
+  // Top cadenas (si se detectaron)
+  if (Object.keys(cadenasDetectadas).length > 0) {
+    html += `<h4 style="color:#28a745;margin-top:20px;">🔗 Top Cadenas Detectadas</h4><div class="stat-lista">`;
+    const topCadenas = Object.entries(cadenasDetectadas)
+      .sort((a,b) => b[1].length - a[1].length)
+      .slice(0, 10);
+    topCadenas.forEach(([cad, arr]) => {
+      html += `<div class="stat-item" style="border-left-color:#28a745;">
+        <div class="nombre">${escapeHtml(cad)}</div>
+        <div class="valor">${arr.length}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  
+  cont.innerHTML = html;
+  modal.style.display = 'block';
+}
+
+function cerrarEstadisticas() { document.getElementById('modalEstadisticas').style.display = 'none'; }
+
 // ===== VISTAS =====
 function guardarVista() {
   const n = prompt('Nombre de la vista:'); if(!n) return;
@@ -123,9 +187,8 @@ function editarMasiva() {
 function eliminarSeleccionados() {
   if(!seleccionados.size) return;
   
-  // CONFIRMACIÓN SEGURA PARA GRANDES CANTIDADES
   if (seleccionados.size > 50) {
-    const texto = prompt(`⚠️ Vas a eliminar ${seleccionados.size} registros de golpe.\n\nEsta acción se puede deshacer con Ctrl+Z, pero es recomendable estar seguro.\n\nEscribe "BORRAR" para confirmar:`);
+    const texto = prompt(`⚠️ Vas a eliminar ${seleccionados.size} registros de golpe.\n\nEscribe "BORRAR" para confirmar:`);
     if (texto !== 'BORRAR') { alert('Eliminación cancelada'); return; }
   } else {
     if(!confirm(`¿Eliminar ${seleccionados.size} registros?`)) return;
@@ -144,20 +207,27 @@ function eliminarSeleccionados() {
   programarAutoguardado(); actualizarProgresoDepuracion();
 }
 
-// ===== EXPORTAR =====
+// ===== EXPORTAR (Ahora con formato) =====
 function exportarPorCarpetas() {
   if(!carpetas.size) { alert('Crea carpetas primero'); return; }
   const wb = XLSX.utils.book_new(); let hojas=0;
+  
   for(const [id,c] of carpetas) {
     const regs = []; datosOriginales.forEach((r,i)=>{ if(asignaciones.get(i)===id) regs.push(r); });
     if(!regs.length) continue;
-    const ws = XLSX.utils.json_to_sheet(regs);
+    
+    const ws = crearHojaExcel(regs); // <-- Usa la nueva función con formato
     let name = c.nombre.replace(/[\\\/\?\*\[\]:]/g,'_').substring(0,31);
     let final = name, sfx=1; while(wb.SheetNames.includes(final)) { const s=`_${sfx}`; final=name.substring(0,31-s.length)+s; sfx++; }
     XLSX.utils.book_append_sheet(wb, ws, final); hojas++;
   }
+  
   const sin = []; datosOriginales.forEach((r,i)=>{ if(!asignaciones.has(i)) sin.push(r); });
-  if(sin.length) { XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sin), 'Sin Asignar'); hojas++; }
+  if(sin.length) { 
+    XLSX.utils.book_append_sheet(wb, crearHojaExcel(sin), 'Sin Asignar'); // <-- Usa la nueva función con formato
+    hojas++; 
+  }
+  
   if(!hojas) { alert('Sin datos'); return; }
   XLSX.writeFile(wb, `carpetas_${fechaHoy()}.xlsx`);
   alert(`✅ ${hojas} hojas exportadas`);
@@ -165,7 +235,8 @@ function exportarPorCarpetas() {
 
 function exportarFiltrados() {
   if(!datosFiltrados.length) { alert('Sin datos'); return; }
-  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(datosFiltrados), 'Filtrados');
+  const wb = XLSX.utils.book_new(); 
+  XLSX.utils.book_append_sheet(wb, crearHojaExcel(datosFiltrados), 'Filtrados'); // <-- Usa la nueva función con formato
   XLSX.writeFile(wb, `filtrados_${fechaHoy()}.xlsx`);
 }
 
@@ -179,7 +250,7 @@ function actualizarEstadisticas() {
 }
 
 function habilitarBotones() {
-  ['searchInput','btnLimpiar','btnGlobal','btnDifusa','btnDuplicados','btnGuardarVista','btnCargarVista','btnEditarMasiva','btnSelTodos','btnDeselTodos','btnEliminar','btnExportar','btnCadenas','btnExportarCarpetas','btnExportarSesion','btnImportarSesion','btnReiniciar','btnUndo','btnVista'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
+  ['searchInput','btnLimpiar','btnGlobal','btnDifusa','btnDuplicados','btnGuardarVista','btnCargarVista','btnEditarMasiva','btnSelTodos','btnDeselTodos','btnEliminar','btnExportar','btnCadenas','btnExportarCarpetas','btnExportarSesion','btnImportarSesion','btnReiniciar','btnUndo','btnVista','btnEstadisticas'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
   actualizarBotonUndo();
 }
 
@@ -190,19 +261,16 @@ try { const s=localStorage.getItem('vistasGuardadas'); if(s) vistasGuardadas=JSO
 
 // ===== ATAJOS DE TECLADO =====
 document.addEventListener('keydown', function(e) {
-  // Evitar que los atajos salten si estamos escribiendo en un input
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
 
   if(e.ctrlKey && e.key==='f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
   else if(e.ctrlKey && e.key==='z') { e.preventDefault(); deshacer(); }
-  else if(e.key==='Escape') { cerrarPanelFiltro(); cerrarAyuda(); }
+  else if(e.key==='Escape') { cerrarPanelFiltro(); cerrarAyuda(); cerrarEstadisticas(); }
   
-  // NUEVOS ATAJOS DE TECLADO
   else if (e.key === 'a' || e.key === 'A') { e.preventDefault(); seleccionarTodos(); mostrarToast('☑️ Todos seleccionados', 1500); }
   else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); deseleccionarTodos(); mostrarToast('⬜ Selección vacía', 1500); }
   else if (e.key === 'd' || e.key === 'D') { e.preventDefault(); mostrarDuplicados(); }
   
-  // ATAJOS NUMÉRICOS (1-9) PARA CARPETAS
   else if (/^[1-9]$/.test(e.key)) {
     const index = parseInt(e.key) - 1;
     const carpetasArray = Array.from(carpetas.keys());
@@ -222,4 +290,4 @@ document.addEventListener('keydown', function(e) {
 })();
 
 // Exponer al window
-Object.assign(window, { crearCarpeta, eliminarCarpeta, renombrarCarpeta, filtrarPorCarpeta, asignarSeleccionadosA, moverSeleccionadosA, exportarPorCarpetas, abrirFiltroColumna, cerrarPanelFiltro, filtrarListaValores, marcarTodosValores, aplicarFiltroColumna, limpiarFiltroColumna, limpiarTodo, toggleGlobal, toggleDifusa, mostrarDuplicados, detectarCadenas, guardarVista, cargarVista, editarMasiva, eliminarSeleccionados, seleccionarTodos, deseleccionarTodos, toggleSeleccion, ordenarPor, exportarFiltrados, mostrarAyuda, cerrarAyuda, filtrarDatos, renderizarTabla, renderizarCarpetas, actualizarEstadisticas, renderizarFiltrosActivos, deshacer });
+Object.assign(window, { crearCarpeta, eliminarCarpeta, renombrarCarpeta, filtrarPorCarpeta, asignarSeleccionadosA, moverSeleccionadosA, exportarPorCarpetas, abrirFiltroColumna, cerrarPanelFiltro, filtrarListaValores, marcarTodosValores, aplicarFiltroColumna, limpiarFiltroColumna, limpiarTodo, toggleGlobal, toggleDifusa, mostrarDuplicados, detectarCadenas, guardarVista, cargarVista, editarMasiva, eliminarSeleccionados, seleccionarTodos, deseleccionarTodos, toggleSeleccion, ordenarPor, exportarFiltrados, mostrarAyuda, cerrarAyuda, filtrarDatos, renderizarTabla, renderizarCarpetas, actualizarEstadisticas, renderizarFiltrosActivos, deshacer, mostrarEstadisticas, cerrarEstadisticas });

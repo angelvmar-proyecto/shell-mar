@@ -106,3 +106,11 @@ th.con-filtro { background:#f0ebff !important; }
 
 /* Vista compacta */
 body.vista-compacta .col-oculta { display:none !important; }
+
+/* Estadísticas Modal */
+.stat-lista { display:flex; flex-direction:column; gap:8px; margin-top:15px; }
+.stat-item { display:flex; justify-content:space-between; align-items:center; padding:10px; background:#f8f9fa; border-radius:6px; border-left:4px solid #ddd; }
+.stat-item .nombre { font-weight:bold; }
+.stat-item .valor { font-size:1.1em; color:#0056b3; font-weight:bold; }
+.stat-barra-bg { width:100%; height:8px; background:#e9ecef; border-radius:4px; margin-top:4px; overflow:hidden; }
+.stat-barra-fill { height:100%; background:#6f42c1; border-radius:4px; }

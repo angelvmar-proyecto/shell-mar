@@ -62,6 +62,7 @@
 
     <div class="toolbar">
       <button onclick="mostrarDuplicados()" id="btnDuplicados" disabled>🔁 Duplicados</button>
+      <button onclick="mostrarEstadisticas()" id="btnEstadisticas" disabled>📊 Estadísticas</button>
       <button onclick="guardarVista()" id="btnGuardarVista" disabled>💾 Guardar Vista</button>
       <button onclick="cargarVista()" id="btnCargarVista" disabled>📂 Cargar Vista</button>
       <button onclick="editarMasiva()" id="btnEditarMasiva" disabled>✏️ Edición Masiva</button>
@@ -99,6 +100,7 @@
 
   </div>
 
+  <!-- MODAL AYUDA -->
   <div id="modalAyuda" class="modal">
     <div class="modal-content">
       <span class="close" onclick="cerrarAyuda()">&times;</span>
@@ -110,6 +112,15 @@
     </div>
   </div>
 
+  <!-- MODAL ESTADÍSTICAS -->
+  <div id="modalEstadisticas" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarEstadisticas()">&times;</span>
+      <h3>📊 Estadísticas del Proyecto</h3>
+      <div id="contenidoEstadisticas"></div>
+    </div>
+  </div>
+
   <script src="js/modules/utils.js"></script>
   <script src="js/modules/db.js"></script>
   <script src="js/modules/historial.js"></script>
@@ -117,6 +128,7 @@
   <script src="js/modules/filtros.js"></script>
   <script src="js/modules/tabla.js"></script>
   <script src="js/modules/sesion.js"></script>
+  <script src="js/modules/excel.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
