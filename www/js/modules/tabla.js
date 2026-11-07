@@ -1,5 +1,3 @@
-let paginaActual = 1;
-const FILAS_POR_PAGINA = 100;
 let vistaCompacta = false;
 
 function toggleVistaCompacta() {
@@ -8,33 +6,12 @@ function toggleVistaCompacta() {
   renderizarTabla();
 }
 
-function cambiarPagina(delta) {
-  const totalPaginas = Math.ceil(datosFiltrados.length / FILAS_POR_PAGINA);
-  paginaActual += delta;
-  if (paginaActual < 1) paginaActual = 1;
-  if (paginaActual > totalPaginas) paginaActual = totalPaginas;
-  renderizarTabla();
-}
-
 function renderizarTabla() {
   const thead = document.getElementById('tablaHeader'); const tbody = document.getElementById('tablaBody');
   
-  const totalPaginas = Math.ceil(datosFiltrados.length / FILAS_POR_PAGINA) || 1;
-  if (paginaActual > totalPaginas) paginaActual = totalPaginas;
-  
-  const inicio = (paginaActual - 1) * FILAS_POR_PAGINA;
-  const fin = Math.min(inicio + FILAS_POR_PAGINA, datosFiltrados.length);
-  const filasPagina = datosFiltrados.slice(inicio, fin);
-
+  // Ocultar el panel de paginación permanentemente
   const pagPanel = document.getElementById('paginacionPanel');
-  if (datosFiltrados.length > FILAS_POR_PAGINA) {
-    pagPanel.style.display = 'flex';
-    document.getElementById('paginacionInfo').textContent = `Página ${paginaActual} de ${totalPaginas} (${datosFiltrados.length} registros)`;
-    document.getElementById('btnPagAnt').disabled = paginaActual === 1;
-    document.getElementById('btnPagSig').disabled = paginaActual === totalPaginas;
-  } else {
-    pagPanel.style.display = 'none';
-  }
+  if (pagPanel) pagPanel.style.display = 'none';
 
   let h = '<th class="checkbox-col">✅</th><th>#</th>';
   columnas.forEach(col => {
@@ -51,11 +28,10 @@ function renderizarTabla() {
   });
   thead.innerHTML = h;
 
-  if(!filasPagina.length) { tbody.innerHTML = `<tr><td colspan="${columnas.length+2}" class="empty">No hay resultados</td></tr>`; return; }
+  if(!datosFiltrados.length) { tbody.innerHTML = `<tr><td colspan="${columnas.length+2}" class="empty">No hay resultados</td></tr>`; return; }
 
   let html = '';
-  filasPagina.forEach((row, idxPag) => {
-    const idxGlobal = inicio + idxPag;
+  datosFiltrados.forEach((row, idxGlobal) => {
     const sel = seleccionados.has(idxGlobal);
     const oi = datosOriginales.indexOf(row);
     const dup = duplicados.has(oi);
@@ -76,7 +52,6 @@ function renderizarTabla() {
         Object.keys(cadenasDetectadas).forEach(cd => { if(String(v).toLowerCase().includes(cd.toLowerCase())) badges += `<span class="chain-badge">${cd}</span>`; });
         if(carp) badges += `<span class="badge-carpeta" style="background:${carp.color}22;color:${carp.color};">📁 ${escapeHtml(carp.nombre)}</span>`;
         
-        // ENLACE A GOOGLE MAPS
         const nombreParaMaps = encodeURIComponent(String(v) + ', ' + (row['Zona'] || row['Ciudad'] || row['País'] || ''));
         const linkMaps = `<a href="https://www.google.com/maps/search/?api=1&query=${nombreParaMaps}" target="_blank" class="btn-maps" title="Ver en Google Maps">📍</a>`;
 
@@ -94,7 +69,6 @@ function renderizarTabla() {
 function ordenarPor(col) { 
   if(columnaOrden===col) ordenAscendente=!ordenAscendente; 
   else { columnaOrden=col; ordenAscendente=true; } 
-  paginaActual = 1;
   filtrarDatos(); 
   renderizarTabla(); 
 }
@@ -120,9 +94,7 @@ function toggleSeleccion(idx) {
 }
 
 function seleccionarTodos() { 
-  const inicio = (paginaActual - 1) * FILAS_POR_PAGINA;
-  const fin = Math.min(inicio + FILAS_POR_PAGINA, datosFiltrados.length);
-  for(let i=inicio; i<fin; i++) seleccionados.add(i);
+  datosFiltrados.forEach((_, i) => seleccionados.add(i));
   renderizarTabla(); actualizarEstadisticas(); renderizarCarpetas(); 
 }
 
@@ -132,4 +104,3 @@ function deseleccionarTodos() {
 }
 
 window.toggleVistaCompacta = toggleVistaCompacta;
-window.cambiarPagina = cambiarPagina;
