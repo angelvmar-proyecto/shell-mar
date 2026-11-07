@@ -1,10 +1,10 @@
 import { app, BrowserWindow } from 'electron';
 import { createCapacitorElectronApp } from '@capawesome/capacitor-electron';
 
-// 1. Limpiar la variable que fuerza modo Node (causa ventana invisible)
+// 1. Limpiar variable que podría forzar modo Node (ventana invisible)
 delete process.env.ELECTRON_RUN_AS_NODE;
 
-// 2. Función para forzar la ventana visible (solución a Focus Stealing en Windows)
+// 2. Función para forzar la ventana visible (Solución a Focus Stealing)
 function ensureWindowVisible(window: BrowserWindow) {
   if (!window || window.isDestroyed()) return;
   if (window.isMinimized()) window.restore();
@@ -17,12 +17,9 @@ app.whenReady().then(() => {
   const mainWindow = capApp.getMainWindow();
 
   if (mainWindow) {
-    // 3. Esperar a que el contenido esté listo y forzar la visibilidad
     mainWindow.once('ready-to-show', () => {
       ensureWindowVisible(mainWindow);
     });
-
-    // 4. Seguro extra: forzar después de un tiempo por si ready-to-show no dispara
     setTimeout(() => {
       ensureWindowVisible(mainWindow);
     }, 1500);

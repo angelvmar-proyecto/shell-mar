@@ -12,8 +12,7 @@
     "pack:dir": "npm run build && npx capacitor-electron vendor && electron-builder --dir"
   },
   "dependencies": {
-    "@capawesome/capacitor-electron": "^0.2.2",
-    "electron-is-dev": "^3.0.1"
+    "@capawesome/capacitor-electron": "^0.2.2"
   },
   "devDependencies": {
     "electron": "^33.0.0",
@@ -24,17 +23,13 @@
     "appId": "com.angelvmar.filtrador",
     "productName": "Filtrador MAR",
     "directories": {
-      "output": "dist",
-      "buildResources": "build"
+      "output": "dist"
     },
     "files": [
       "dist/**/*",
-      "generated/**/*",
-      "generated/**/*",
-      "generated/**/*",
       "app/**/*",
-      "node_modules/**/*",
       "vendor/**/*",
+      "node_modules/@capawesome/**/*",
       "package.json"
     ],
     "win": {
