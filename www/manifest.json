@@ -1,0 +1,21 @@
+{
+  "name": "Filtrador MAR",
+  "short_name": "Filtrador",
+  "description": "Filtrador Pro de Hoteles",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#0056b3",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
