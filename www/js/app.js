@@ -229,7 +229,7 @@ function exportarPorCarpetas() {
   }
   
   if(!hojas) { alertSeguro('Sin datos'); return; }
-  XLSX.writeFile(wb, `carpetas_${fechaHoy()}.xlsx`); setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500);
+  XLSX.writeFile(wb, `carpetas_${fechaHoy()}.xlsx`); setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500); setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500);
   alertSeguro(`✅ ${hojas} hojas exportadas`);
 }
 
@@ -237,7 +237,7 @@ function exportarFiltrados() {
   if(!datosFiltrados.length) { alertSeguro('Sin datos'); return; }
   const wb = XLSX.utils.book_new(); 
   XLSX.utils.book_append_sheet(wb, crearHojaExcel(datosFiltrados), 'Filtrados'); // <-- Usa la nueva función con formato
-  XLSX.writeFile(wb, `filtrados_${fechaHoy()}.xlsx`); setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500);
+  XLSX.writeFile(wb, `filtrados_${fechaHoy()}.xlsx`); setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500); setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500);
 }
 
 // ===== UTILIDADES UI =====

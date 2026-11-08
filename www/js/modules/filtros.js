@@ -11,7 +11,6 @@ function abrirFiltroColumna(event, col) {
   const vals = Array.from(conteo.keys()).sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
   
   const actual = filtrosColumna.get(col);
-  // Si la columna ya tiene un filtro, marcamos solo esos; si no, marcamos todos los que quedan.
   const sel = new Set(actual && actual.size>0 ? Array.from(actual).filter(v => vals.includes(v)) : vals);
   
   const panel = document.createElement('div'); 
@@ -81,7 +80,6 @@ function aplicarFiltroColumna(col) {
   const checks = document.querySelectorAll('#filtroColValores .chk-valor');
   const marcados = new Set(); checks.forEach(c=>{ if(c.checked) marcados.add(c.value); });
   
-  // Si se marcan todos los valores que hay en esta vista, quitamos el filtro de esta columna para no bloquear
   const totalVista = datosFiltrados.length;
   let sumaMarcados = 0;
   datosFiltrados.forEach(r => { if(marcados.has(String(r[col]??'').trim())) sumaMarcados++; });
@@ -135,3 +133,10 @@ function eliminarFiltro(i) {
   actualizarEstadisticas(); 
   renderizarFiltrosActivos(); 
 }
+
+window.abrirFiltroColumna = abrirFiltroColumna;
+window.cerrarPanelFiltro = cerrarPanelFiltro;
+window.filtrarListaValores = filtrarListaValores;
+window.marcarTodosValores = marcarTodosValores;
+window.aplicarFiltroColumna = aplicarFiltroColumna;
+window.limpiarFiltroColumna = limpiarFiltroColumna;

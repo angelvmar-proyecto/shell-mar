@@ -52,7 +52,8 @@ function renderizarTabla() {
         Object.keys(cadenasDetectadas).forEach(cd => { if(String(v).toLowerCase().includes(cd.toLowerCase())) badges += `<span class="chain-badge">${cd}</span>`; });
         if(carp) badges += `<span class="badge-carpeta" style="background:${carp.color}22;color:${carp.color};">📁 ${escapeHtml(carp.nombre)}</span>`;
         
-        const nombreParaMaps = encodeURIComponent(String(v) + ', ' + (row['Zona'] || row['Ciudad'] || row['País'] || ''));
+        // ENLACE A GOOGLE MAPS: Solo por el nombre exacto del hotel
+        const nombreParaMaps = encodeURIComponent(String(v));
         const linkMaps = `<a href="https://www.google.com/maps/search/?api=1&query=${nombreParaMaps}" target="_blank" class="btn-maps" title="Ver en Google Maps">📍</a>`;
 
         v = terminoBusqueda ? resaltarTexto(v, terminoBusqueda) : escapeHtml(v);
