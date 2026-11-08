@@ -87,7 +87,7 @@ function toggleGlobal() { busquedaGlobal=!busquedaGlobal; document.getElementByI
 function toggleDifusa() { busquedaDifusa=!busquedaDifusa; document.getElementById('btnDifusa').style.background = busquedaDifusa?'#28a745':'#0056b3'; filtrarDatos(); renderizarTabla(); }
 
 function limpiarTodo() {
-  document.getElementById('searchInput').value=''; terminoBusqueda=''; busquedaGlobal=false; busquedaDifusa=false; seleccionados.clear(); filtrosActivos=[]; filtrosColumna.clear(); carpetaActivaFiltro=null;
+  document.getElementById('searchInput').value=''; terminoBusqueda=''; busquedaGlobal=false; busquedaDifusa=false; seleccionados.clear(); filtrosActivos=[]; filtrosColumna.clear(); carpetaActivaFiltro=null; cerrarPanelFiltro(); cerrarPanelFiltro();
   document.getElementById('btnGlobal').style.background='#0056b3'; document.getElementById('btnDifusa').style.background='#0056b3';
   filtrarDatos(); renderizarTabla(); actualizarEstadisticas(); renderizarFiltrosActivos(); renderizarCarpetas();
 }
