@@ -5,11 +5,14 @@ function abrirFiltroColumna(event, col) {
   event.stopPropagation(); 
   cerrarPanelFiltro();
   
+  // LEER SOLO DE LOS DATOS FILTRADOS ACTUALES (Filtros jerárquicos)
   const conteo = new Map();
-  datosOriginales.forEach(row => { const v = String(row[col] ?? '').trim(); conteo.set(v, (conteo.get(v)||0)+1); });
+  datosFiltrados.forEach(row => { const v = String(row[col] ?? '').trim(); conteo.set(v, (conteo.get(v)||0)+1); });
   const vals = Array.from(conteo.keys()).sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+  
   const actual = filtrosColumna.get(col);
-  const sel = new Set(actual && actual.size>0 ? actual : vals);
+  // Si la columna ya tiene un filtro, marcamos solo esos; si no, marcamos todos los que quedan.
+  const sel = new Set(actual && actual.size>0 ? Array.from(actual).filter(v => vals.includes(v)) : vals);
   
   const panel = document.createElement('div'); 
   panel.className='filtro-col-panel';
@@ -78,8 +81,13 @@ function aplicarFiltroColumna(col) {
   const checks = document.querySelectorAll('#filtroColValores .chk-valor');
   const marcados = new Set(); checks.forEach(c=>{ if(c.checked) marcados.add(c.value); });
   
+  // Si se marcan todos los valores que hay en esta vista, quitamos el filtro de esta columna para no bloquear
+  const totalVista = datosFiltrados.length;
+  let sumaMarcados = 0;
+  datosFiltrados.forEach(r => { if(marcados.has(String(r[col]??'').trim())) sumaMarcados++; });
+  
   if(marcados.size===0) filtrosColumna.set(col, new Set());
-  else if(marcados.size===checks.length) filtrosColumna.delete(col);
+  else if(sumaMarcados === totalVista && !filtrosColumna.has(col)) filtrosColumna.delete(col);
   else filtrosColumna.set(col, marcados);
   
   cerrarPanelFiltro(); 
