@@ -114,3 +114,34 @@ body.vista-compacta .col-oculta { display:none !important; }
 .stat-item .valor { font-size:1.1em; color:#0056b3; font-weight:bold; }
 .stat-barra-bg { width:100%; height:8px; background:#e9ecef; border-radius:4px; margin-top:4px; overflow:hidden; }
 .stat-barra-fill { height:100%; background:#6f42c1; border-radius:4px; }
+
+/* ===== COMPACTACIÓN DE UI ===== */
+body { padding: 10px; font-size: 13px; }
+.container { padding: 15px; }
+h2 { margin: 0 0 10px 0; font-size: 1.2em; }
+.info-banner { padding: 8px 12px; margin-bottom: 8px; font-size: 0.85em; }
+.toolbar { padding: 6px 10px; gap: 6px; margin-bottom: 8px; }
+.toolbar button { padding: 6px 10px; font-size: 0.8em; }
+.toolbar input[type="text"], .toolbar select { padding: 6px 8px; font-size: 0.85em; }
+.stats { gap: 10px; margin-bottom: 10px; }
+.stat { padding: 6px 10px; font-size: 0.8em; }
+.progreso-panel { padding: 8px 12px; margin-bottom: 8px; }
+.progreso-barra-bg { height: 8px; }
+.carpetas-panel { padding: 10px; margin-bottom: 10px; }
+.carpetas-panel h3 { font-size: 0.9em; margin: 0 0 6px 0; }
+.carpeta-chip { padding: 4px 8px; font-size: 0.8em; }
+.carpeta-toolbar input { padding: 4px 8px; font-size: 0.8em; }
+.carpeta-toolbar button { padding: 4px 10px; font-size: 0.8em; }
+
+/* Separador vertical para agrupar botones */
+.separador {
+  width: 1px;
+  height: 20px;
+  background: #ccc;
+  margin: 0 4px;
+}
+
+/* Ajuste específico para las tablas y celdas */
+.table-container { max-height: 65vh; }
+table { font-size: 0.78em; }
+th, td { padding: 4px 6px; }
