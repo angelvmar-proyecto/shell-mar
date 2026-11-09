@@ -1,0 +1,45 @@
+{
+  "name": "filtrador-mar-electron",
+  "version": "3.0.0",
+  "description": "Filtrador Pro de Hoteles - MAR Caribe (Desktop)",
+  "main": "dist/main.js",
+  "author": "angelvmar",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "pack": "npm run build && electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "@capawesome/capacitor-electron": "^0.2.2",
+    "electron": "^33.0.0",
+    "electron-builder": "^26.0.12",
+    "typescript": "^5.6.0"
+  },
+  "build": {
+    "appId": "com.angelvmar.filtrador",
+    "productName": "Depurar Hoteles",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "dist/**/*",
+      "app/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Depurar Hoteles"
+    }
+  }
+}
