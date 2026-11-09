@@ -145,3 +145,7 @@ h2 { margin: 0 0 10px 0; font-size: 1.2em; }
 .table-container { max-height: 65vh; }
 table { font-size: 0.78em; }
 th, td { padding: 4px 6px; }
+
+/* Botón de limpieza de textos */
+.btn-warning { background: #ffc107 !important; color: #333 !important; }
+.btn-warning:hover { background: #e0a800 !important; }

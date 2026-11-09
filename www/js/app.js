@@ -241,7 +241,7 @@ function actualizarEstadisticas() {
 }
 
 function habilitarBotones() {
-  ['searchInput','btnLimpiar','btnGlobal','btnDifusa','btnDuplicados','btnGuardarVista','btnCargarVista','btnEditarMasiva','btnSelTodos','btnDeselTodos','btnEliminar','btnExportar','btnCadenas','btnExportarCarpetas','btnExportarSesion','btnImportarSesion','btnReiniciar','btnUndo','btnVista','btnEstadisticas'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
+  ['searchInput','btnLimpiar','btnGlobal','btnDifusa','btnDuplicados','btnGuardarVista','btnCargarVista','btnEditarMasiva','btnSelTodos','btnDeselTodos','btnEliminar','btnExportar','btnCadenas','btnExportarCarpetas','btnExportarSesion','btnImportarSesion','btnReiniciar','btnUndo','btnVista','btnEstadisticas','btnLimpiarTexto'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
   actualizarBotonUndo();
 }
 
