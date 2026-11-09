@@ -174,15 +174,6 @@ function cargarVista() {
 }
 
 // ===== EDICIÓN MASIVA =====
-function editarMasiva() {
-  if(!seleccionados.size) { alertSeguro('Selecciona registros'); return; }
-  const col = prompt('Columna a editar:\n' + columnas.join('\n')); if(!col||!columnas.includes(col)) return;
-  const val = prompt(`Nuevo valor para "${col}":`); if(val===null) return;
-  guardarParaDeshacer('edición masiva');
-  seleccionados.forEach(i => { const item=datosFiltrados[i]; const oi=datosOriginales.indexOf(item); if(oi!==-1) datosOriginales[oi][col]=val; });
-  filtrarDatos(); renderizarTabla(); alertSeguro(`✅ ${seleccionados.size} actualizados`);
-  programarAutoguardado();
-}
 
 function eliminarSeleccionados() {
   if(!seleccionados.size) return;
@@ -291,3 +282,48 @@ document.addEventListener('keydown', function(e) {
 
 // Exponer al window
 Object.assign(window, { crearCarpeta, eliminarCarpeta, renombrarCarpeta, filtrarPorCarpeta, asignarSeleccionadosA, moverSeleccionadosA, exportarPorCarpetas, abrirFiltroColumna, cerrarPanelFiltro, filtrarListaValores, marcarTodosValores, aplicarFiltroColumna, limpiarFiltroColumna, limpiarTodo, toggleGlobal, toggleDifusa, mostrarDuplicados, detectarCadenas, guardarVista, cargarVista, editarMasiva, eliminarSeleccionados, seleccionarTodos, deseleccionarTodos, toggleSeleccion, ordenarPor, exportarFiltrados, mostrarAyuda, cerrarAyuda, filtrarDatos, renderizarTabla, renderizarCarpetas, actualizarEstadisticas, renderizarFiltrosActivos, deshacer, mostrarEstadisticas, cerrarEstadisticas });
+
+function editarMasiva() {
+  if(!seleccionados.size) { alertSeguro('Selecciona al menos un registro primero'); return; }
+  
+  // Creamos un modal rápido para elegir columna y valor
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.style.display = 'block';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:400px;">
+      <h3>Editar registros</h3>
+      <p>Modificando <strong>${seleccionados.size}</strong> registro(s).</p>
+      <label>Columna a editar:</label>
+      <select id="editColSelect" style="width:100%; margin-bottom:10px; padding:5px;">
+        ${columnas.map(c => `<option value="${c}">${c}</option>`).join('')}
+      </select>
+      <label>Nuevo valor:</label>
+      <input type="text" id="editValInput" style="width:100%; margin-bottom:15px; padding:5px;">
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button onclick="this.closest('.modal').remove()" style="background:#ccc; color:#333; padding:8px 15px; border:none; border-radius:4px; cursor:pointer;">Cancelar</button>
+        <button onclick="aplicarEdicionMasiva()" style="background:#0056b3; color:white; padding:8px 15px; border:none; border-radius:4px; cursor:pointer;">Aplicar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function aplicarEdicionMasiva() {
+  const col = document.getElementById('editColSelect').value;
+  const val = document.getElementById('editValInput').value;
+  
+  guardarParaDeshacer('edición masiva');
+  seleccionados.forEach(i => { 
+    const item=datosFiltrados[i]; 
+    const oi=datosOriginales.indexOf(item); 
+    if(oi!==-1) datosOriginales[oi][col]=val; 
+  });
+  
+  document.querySelector('.modal[style*="display: block"]').remove();
+  filtrarDatos(); 
+  renderizarTabla(); 
+  actualizarEstadisticas();
+  mostrarToast(`✅ ${seleccionados.size} registros actualizados`, 3000);
+  programarAutoguardado();
+}

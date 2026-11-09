@@ -8,8 +8,6 @@ function toggleVistaCompacta() {
 
 function renderizarTabla() {
   const thead = document.getElementById('tablaHeader'); const tbody = document.getElementById('tablaBody');
-  
-  // Ocultar el panel de paginación permanentemente
   const pagPanel = document.getElementById('paginacionPanel');
   if (pagPanel) pagPanel.style.display = 'none';
 
@@ -47,24 +45,67 @@ function renderizarTabla() {
       const esImportante = col === columnaNombre || col === '_hoja_origen' || col.toLowerCase().includes('cadena') || col.toLowerCase().includes('zona');
       const claseOcultar = (vistaCompacta && !esImportante) ? 'col-oculta' : '';
 
+      // DOBLE CLIC PARA EDITAR (excluyendo la columna de origen que es fija)
+      const editAttr = col !== '_hoja_origen' ? `ondblclick="editarCelda(this, ${idxGlobal}, '${escapeAttr(col)}')" title="Doble clic para editar" style="cursor:pointer;"` : '';
+
       if(col===columnaNombre) {
         let badges = '';
         Object.keys(cadenasDetectadas).forEach(cd => { if(String(v).toLowerCase().includes(cd.toLowerCase())) badges += `<span class="chain-badge">${cd}</span>`; });
         if(carp) badges += `<span class="badge-carpeta" style="background:${carp.color}22;color:${carp.color};">📁 ${escapeHtml(carp.nombre)}</span>`;
         
-        // ENLACE A GOOGLE MAPS: Solo por el nombre exacto del hotel
         const nombreParaMaps = encodeURIComponent(String(v));
-        const linkMaps = `<a href="https://www.google.com/maps/search/?api=1&query=${nombreParaMaps}" target="_blank" class="btn-maps" title="Ver en Google Maps">📍</a>`;
+        const linkMaps = `<a href="https://www.google.com/maps/search/?api=1&query=${nombreParaMaps}" target="_blank" class="btn-maps" title="Ver en Google Maps" onclick="event.stopPropagation()">📍</a>`;
 
         v = terminoBusqueda ? resaltarTexto(v, terminoBusqueda) : escapeHtml(v);
-        html += `<td class="${claseOcultar}"><div style="display:flex; align-items:center; gap:4px;">${linkMaps} <span>${v}</span></div> ${badges}</td>`;
+        html += `<td class="${claseOcultar}" ${editAttr}><div style="display:flex; align-items:center; gap:4px;">${linkMaps} <span>${v}</span></div> ${badges}</td>`;
       } else if(col==='_hoja_origen') {
         html += `<td class="${claseOcultar}"><span style="background:#e9ecef;padding:2px 6px;border-radius:6px;font-size:.85em;">📄 ${escapeHtml(v)}</span></td>`;
-      } else html += `<td class="${claseOcultar}">${escapeHtml(v)}</td>`;
+      } else {
+        html += `<td class="${claseOcultar}" ${editAttr}>${escapeHtml(v)}</td>`;
+      }
     });
     html += '</tr>';
   });
   tbody.innerHTML = html;
+}
+
+// Función para convertir la celda en un input al hacer doble clic
+function editarCelda(tdElement, idxGlobal, col) {
+  if (tdElement.querySelector('input')) return; // Ya está en modo edición
+  
+  const row = datosFiltrados[idxGlobal];
+  const oi = datosOriginales.indexOf(row);
+  const valorActual = row[col] != null ? String(row[col]) : '';
+  
+  // Guardamos el HTML original por si cancela
+  const htmlOriginal = tdElement.innerHTML;
+  
+  // Creamos el input
+  tdElement.innerHTML = `<input type="text" value="${escapeAttr(valorActual)}" style="width:100%; padding:2px; font-size:inherit; border:1px solid #0056b3;">`;
+  const input = tdElement.querySelector('input');
+  input.focus();
+  input.select();
+
+  const guardarCambio = () => {
+    const nuevoValor = input.value;
+    if (nuevoValor !== valorActual) {
+      guardarParaDeshacer('editar celda');
+      datosOriginales[oi][col] = nuevoValor;
+      programarAutoguardado();
+      mostrarToast(`✅ Editado`, 1500);
+      // Actualizamos la fila visualmente
+      filtrarDatos();
+      renderizarTabla();
+    } else {
+      tdElement.innerHTML = htmlOriginal; // Restaurar si no cambió
+    }
+  };
+
+  input.addEventListener('blur', guardarCambio);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { input.blur(); }
+    if (e.key === 'Escape') { tdElement.innerHTML = htmlOriginal; }
+  });
 }
 
 function ordenarPor(col) { 
@@ -105,3 +146,4 @@ function deseleccionarTodos() {
 }
 
 window.toggleVistaCompacta = toggleVistaCompacta;
+window.editarCelda = editarCelda;
