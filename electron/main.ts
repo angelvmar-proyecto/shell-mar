@@ -13,15 +13,15 @@ app.whenReady().then(() => {
       mainWindow.focus();
     });
 
-    // FORZAR CIERRE: Ignorar cualquier proceso pendiente y destruir la ventana
+    // FORZAR CIERRE MATANDO EL PROCESO DE WINDOWS
     mainWindow.on('close', (event) => {
       event.preventDefault();
       mainWindow.destroy();
-      app.exit(0);
+      process.kill(process.pid, 'SIGINT'); // Mata el proceso a nivel de sistema
     });
   }
 });
 
 app.on('window-all-closed', () => {
-  app.exit(0);
+  process.kill(process.pid, 'SIGINT');
 });

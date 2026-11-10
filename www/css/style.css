@@ -160,3 +160,16 @@ th, td { padding: 4px 6px; }
 
 /* Resaltar item de la lista */
 .item-mapa:hover { background: #f0f0f0; }
+
+/* Estilo para los nombres sobre los pines del mapa */
+.map-tooltip {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid #666 !important;
+  border-radius: 4px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+  font-weight: bold !important;
+  font-size: 11px !important;
+  color: #333 !important;
+  padding: 2px 6px !important;
+}
+.map-tooltip::before { display: none !important; } /* Quitar la flechita */

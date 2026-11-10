@@ -13,10 +13,7 @@ function mostrarMapa() {
 
   document.getElementById('modalMapa').style.display = 'block';
 
-  if (mapaInstancia) {
-    mapaInstancia.remove();
-    mapaInstancia = null;
-  }
+  if (mapaInstancia) { mapaInstancia.remove(); mapaInstancia = null; }
 
   mapaInstancia = L.map('mapaContainer').setView([21.1619, -86.8515], 8);
 
@@ -41,18 +38,26 @@ function mostrarMapa() {
       
       const colorPin = carpeta ? carpeta.color : '#dc3545'; 
       
+      // Icono con el número y un borde blanco
       const icono = L.divIcon({
         className: 'custom-pin',
-        html: `<div style="background-color:${colorPin}; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow:0 0 4px rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; color:white; font-size:9px; font-weight:bold;">${contador}</div>`,
+        html: `<div style="background-color:${colorPin}; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow:0 0 4px rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; color:white; font-size:10px; font-weight:bold;">${contador}</div>`,
         iconSize: [16, 16],
         iconAnchor: [8, 8]
       });
 
       const marker = L.marker([lat, lng], {icon: icono}).addTo(mapaInstancia);
       
-      const etiquetaCarpeta = carpeta ? `<br><span style="background:${carpeta.color}22;color:#333;padding:2px 6px;border-radius:4px;font-size:11px;">📁 ${escapeHtml(carpeta.nombre)}</span>` : '';
+      // AÑADIR TOOLTIP PERMANENTE CON EL NOMBRE
+      marker.bindTooltip(`${contador}. ${escapeHtml(nombre)}`, {
+        permanent: true,
+        direction: 'right',
+        className: 'map-tooltip',
+        offset: [8, 0]
+      });
       
-      marker.bindPopup(`<strong style="color:#333;">${contador}. ${escapeHtml(nombre)}</strong>${etiquetaCarpeta}<br><a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank">Abrir en Google Maps</a>`);
+      const etiquetaCarpeta = carpeta ? `<br><span style="background:${carpeta.color}22;color:#333;padding:2px 6px;border-radius:4px;font-size:11px;">📁 ${escapeHtml(carpeta.nombre)}</span>` : '';
+      marker.bindPopup(`<strong>${contador}. ${escapeHtml(nombre)}</strong>${etiquetaCarpeta}<br><a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank">Abrir en Google Maps</a>`);
       
       marker.on('click', () => {
         document.querySelectorAll('.item-mapa').forEach(el => el.style.background = 'transparent');
@@ -60,10 +65,8 @@ function mostrarMapa() {
         if (el) el.style.background = '#e7f3ff';
       });
 
-      listaHtml += `<div id="item-mapa-${contador}" class="item-mapa" style="padding:6px; border-bottom:1px solid #ddd; cursor:pointer;" onclick="centrarMapa(${lat}, ${lng}, ${contador})">
-        <strong style="color:#333; font-size:1.1em;">${contador}.</strong> 
-        <span style="color:#333;">${escapeHtml(nombre)}</span><br>
-        <span style="font-size:0.8em; color:#666;">${carpeta ? '📁 ' + escapeHtml(carpeta.nombre) : 'Sin categoría'}</span>
+      listaHtml += `<div id="item-mapa-${contador}" class="item-mapa" style="padding:4px; border-bottom:1px solid #ddd; cursor:pointer;" onclick="centrarMapa(${lat}, ${lng}, ${contador})">
+        <strong style="color:#333;">${contador}.</strong> <span style="color:#333;">${escapeHtml(nombre)}</span>
       </div>`;
 
       bounds.extend([lat, lng]);
@@ -75,9 +78,7 @@ function mostrarMapa() {
   document.getElementById('listaMapa').innerHTML = listaHtml || '<p style="color:#666;">No hay coordenadas válidas.</p>';
 
   if (pinesAgregados > 0) {
-    mapaInstancia.fitBounds(bounds, { padding: [30, 30] });
-  } else {
-    alertSeguro('Los registros filtrados no tienen coordenadas válidas.');
+    mapaInstancia.fitBounds(bounds, { padding: [50, 50] }); // Más padding para que quepan los tooltips
   }
 }
 
@@ -92,41 +93,36 @@ function centrarMapa(lat, lng, id) {
 
 function cerrarMapa() {
   document.getElementById('modalMapa').style.display = 'none';
-  if (mapaInstancia) {
-    mapaInstancia.remove();
-    mapaInstancia = null;
-  }
+  if (mapaInstancia) { mapaInstancia.remove(); mapaInstancia = null; }
 }
 
 function imprimirMapa() {
   if (!mapaInstancia) return;
   
-  const controles = document.querySelectorAll('.leaflet-control-zoom');
-  controles.forEach(c => c.style.display = 'none');
-  
-  const botones = document.querySelectorAll('#modalMapa button, #modalMapa h3');
-  botones.forEach(b => b.style.display = 'none');
+  document.querySelectorAll('.leaflet-control-zoom, .leaflet-control-attribution').forEach(c => c.style.display = 'none');
+  document.querySelectorAll('#modalMapa button, #modalMapa h3').forEach(b => b.style.display = 'none');
 
   const style = document.createElement('style');
   style.innerHTML = `
     @media print {
+      @page { size: letter portrait; margin: 10mm; }
       body * { visibility: hidden; }
       #modalMapa, #modalMapa * { visibility: visible; }
       #modalMapa { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white; }
-      .modal-content { box-shadow: none; border: none; width: 100%; max-width: none; height: auto; }
-      #mapaContainer { height: 60vh !important; border: 1px solid #333 !important; }
-      #listaMapa { max-height: 30vh !important; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .item-mapa { page-break-inside: avoid; }
+      .modal-content { box-shadow: none; border: none; width: 100%; max-width: none; height: auto; padding: 0; }
+      #mapaContainer { height: 70vh !important; border: 2px solid #333 !important; page-break-inside: avoid; }
+      #listaMapa { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; font-size: 10px; margin-top: 10px; }
+      .item-mapa { page-break-inside: avoid; border: none !important; padding: 2px !important; }
+      /* Hacer los tooltips más legibles en papel */
+      .map-tooltip { background: transparent !important; border: none !important; box-shadow: none !important; color: black !important; font-weight: bold; font-size: 10px; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }
     }
   `;
   document.head.appendChild(style);
-
   window.print();
-
   setTimeout(() => {
     document.head.removeChild(style);
-    controles.forEach(c => c.style.display = '');
-    botones.forEach(b => b.style.display = '');
+    document.querySelectorAll('.leaflet-control-zoom, .leaflet-control-attribution').forEach(c => c.style.display = '');
+    document.querySelectorAll('#modalMapa button, #modalMapa h3').forEach(b => b.style.display = '');
   }, 1000);
 }
 
