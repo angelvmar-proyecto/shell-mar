@@ -241,7 +241,7 @@ function actualizarEstadisticas() {
 }
 
 function habilitarBotones() {
-  ['searchInput','btnLimpiar','btnGlobal','btnDifusa','btnDuplicados','btnGuardarVista','btnCargarVista','btnEditarMasiva','btnSelTodos','btnDeselTodos','btnEliminar','btnExportar','btnCadenas','btnExportarCarpetas','btnExportarSesion','btnImportarSesion','btnReiniciar','btnUndo','btnVista','btnEstadisticas','btnLimpiarTexto'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
+  ['searchInput','btnLimpiar','btnGlobal','btnDifusa','btnDuplicados','btnGuardarVista','btnCargarVista','btnEditarMasiva','btnSelTodos','btnDeselTodos','btnEliminar','btnExportar','btnCadenas','btnExportarCarpetas','btnExportarSesion','btnImportarSesion','btnReiniciar','btnUndo','btnVista','btnEstadisticas','btnLimpiarTexto','btnMapa'].forEach(id => { const el=document.getElementById(id); if(el) el.disabled=false; });
   actualizarBotonUndo();
 }
 
@@ -326,4 +326,59 @@ function aplicarEdicionMasiva() {
   actualizarEstadisticas();
   mostrarToast(`✅ ${seleccionados.size} registros actualizados`, 3000);
   programarAutoguardado();
+}
+// ===== LIMPIADOR DE CARACTERES ROTOS (MEJORADO) =====
+function limpiarTextosRaros() {
+  if (!datosOriginales.length) { alertSeguro('Carga un Excel primero'); return; }
+  const haySeleccion = seleccionados.size > 0;
+  
+  const mensaje = haySeleccion 
+    ? `¿Limpiar acentos y símbolos rotos en los ${seleccionados.size} registros seleccionados?`
+    : `No has seleccionado nada. ¿Quieres limpiar TODA la base de datos (${datosOriginales.length} registros)?`;
+
+  confirmarSeguro(mensaje, (confirmado) => {
+    if (!confirmado) return;
+    
+    mostrarToast('⏳ Limpiando textos...', 5000);
+    
+    setTimeout(() => {
+      guardarParaDeshacer('limpiar textos');
+      
+      const reemplazos = {
+        'Ã¡': 'á', 'Ã©': 'é', 'Ã': 'í', 'Ã³': 'ó', 'Ãº': 'ú', 'Ã±': 'ñ',
+        'Ã': 'Á', 'Ã‰': 'É', 'Ã': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú', 'Ã‘': 'Ñ',
+        'Ã¼': 'ü', 'Ãœ': 'Ü', 'Ã§': 'ç', 'Ã‡': 'Ç',
+        'â€™': "'", 'â€~': "'", 'â€œ': '"', 'â€': '"',
+        'â€“': '–', 'â€”': '—', 'â€¦': '...',
+        'Â ': ' ', 'Â': '', 'Âº': 'º', 'Âª': 'ª',
+        'Ã¢â‚¬â„¢': "'", 'Ã¢â‚¬Å“': '"', 'Ã¢â‚¬': '"',
+        'Ã©': 'é', 'Ã ': 'à'
+      };
+
+      const regex = new RegExp(Object.keys(reemplazos).join('|'), 'g');
+      const limpiarString = (str) => typeof str === 'string' ? str.replace(regex, match => reemplazos[match] || match) : str;
+      
+      let modificados = 0;
+      const indices = haySeleccion ? Array.from(seleccionados).map(i => datosOriginales.indexOf(datosFiltrados[i])) : datosOriginales.keys();
+      
+      for (const oi of indices) {
+        if (oi === -1) continue;
+        let filaMod = false;
+        for (const col of columnas) {
+          if (col === '_hoja_origen') continue;
+          const orig = datosOriginales[oi][col];
+          const limpio = limpiarString(orig);
+          if (limpio !== orig) { datosOriginales[oi][col] = limpio; filaMod = true; }
+        }
+        if (filaMod) modificados++;
+      }
+      
+      filtrarDatos(); 
+      renderizarTabla(); 
+      actualizarEstadisticas(); 
+      programarAutoguardado();
+      
+      mostrarToast(modificados > 0 ? `✅ ${modificados} registros limpiados` : `✨ No se encontraron textos rotos`, 3000);
+    }, 100);
+  });
 }
