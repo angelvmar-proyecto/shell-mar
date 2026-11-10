@@ -17,8 +17,8 @@ function mostrarMapa() {
 
   mapaInstancia = L.map('mapaContainer').setView([21.1619, -86.8515], 8);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: 'attribution: '&copy; OpenStreetMap'copy; OpenStreetMap attribution: '&copy; OpenStreetMap'copy; CARTO'
   }).addTo(mapaInstancia);
 
   const bounds = L.latLngBounds();
