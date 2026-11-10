@@ -149,3 +149,14 @@ th, td { padding: 4px 6px; }
 /* Botón de limpieza de textos */
 .btn-warning { background: #ffc107 !important; color: #333 !important; }
 .btn-warning:hover { background: #e0a800 !important; }
+
+/* Estilo para el modal de impresión */
+@media print {
+  .leaflet-control-container { display: none !important; }
+  .leaflet-popup { display: none !important; }
+  .modal-content h3 { color: black !important; }
+  .modal-content { box-shadow: none !important; }
+}
+
+/* Resaltar item de la lista */
+.item-mapa:hover { background: #f0f0f0; }
