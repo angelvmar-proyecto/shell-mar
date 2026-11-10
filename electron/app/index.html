@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Depurar Hoteles</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css">
+  <script src="xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>🔍 Depurar Hoteles <button onclick="mostrarAyuda()" class="btn-ayuda">❓</button></h2>
+
+    <div class="info-banner" id="bannerInfo">
+      💡 Carga tu Excel. Todas las hojas se unen. Filtra y clasifica en carpetas.
+    </div>
+
+    <!-- FILA 1: Carga y Sesión -->
+    <div class="toolbar">
+      <input type="file" id="fileInput" accept=".xlsx,.xls">
+      <select id="columnaNombre"><option value="">Nombre</option></select>
+      <button onclick="detectarCadenas()" id="btnCadenas" disabled>🔗 Cadenas</button>
+      
+      <div class="separador"></div>
+
+      <button onclick="exportarSesionJSON()" id="btnExportarSesion" disabled>💾 Guardar</button>
+      <button onclick="document.getElementById('fileSesion').click()" id="btnImportarSesion" disabled>📂 Cargar</button>
+      <input type="file" id="fileSesion" accept=".json" style="display:none" onchange="importarSesionJSON(event)">
+      <button onclick="deshacer()" id="btnUndo" disabled>↩️ Deshacer</button>
+      <button onclick="reiniciarSesion()" id="btnReiniciar" class="btn-danger" disabled>🔄 Reiniciar</button>
+    </div>
+
+    <!-- FILA 2: Filtros y Búsqueda -->
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="🔍 Riu AND Cancún | Riu OR Marriott | Riu NOT Cancún" disabled style="flex:1;">
+      <button onclick="limpiarTodo()" id="btnLimpiar" disabled>✕ Limpiar</button>
+      <button onclick="toggleGlobal()" id="btnGlobal" disabled>🌐 Global</button>
+      <button onclick="toggleDifusa()" id="btnDifusa" disabled>🔤 Difusa</button>
+      <button onclick="toggleVistaCompacta()" id="btnVista" disabled>👁️ Compacta</button>
+      
+      <div class="separador"></div>
+
+      <button onclick="mostrarDuplicados()" id="btnDuplicados" disabled>🔁 Duplicados</button>
+      <button onclick="mostrarEstadisticas()" id="btnEstadisticas" disabled>📊 Estadísticas</button>
+    </div>
+
+    <div id="filtrosActivos" style="margin-bottom: 8px;"></div>
+
+    <!-- PANEL DE CARPETAS Y PROGRESO INTEGRADO -->
+    <div class="carpetas-panel" id="carpetasPanel" style="display:none;">
+      <div class="carpetas-header">
+        <h3>📁 Carpetas <small>(1 carpeta = 1 hoja al exportar)</small></h3>
+        <div class="progreso-panel" id="progresoPanel" style="display:none; margin:0; padding:0; border:none; box-shadow:none; background:transparent;">
+          <div class="progreso-info">
+            <span>Progreso:</span>
+            <strong id="progresoTexto">0% (0/0)</strong>
+          </div>
+          <div class="progreso-barra-bg" style="height:6px; width:150px;">
+            <div class="progreso-barra-fill" id="progresoFill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="carpetas-lista" id="carpetasLista"></div>
+      <div class="carpeta-toolbar">
+        <input type="text" id="nuevaCarpetaInput" placeholder="Nombre (ej: VERIFICADOS, AIRBNB LOW COST)" onkeydown="if(event.key==='Enter')crearCarpeta()">
+        <button onclick="crearCarpeta()" class="btn-add">➕ Crear</button>
+        <button onclick="moverSeleccionadosA('')" id="btnMoverSin" class="btn-mover" disabled>⬅️ Sin Asignar</button>
+      </div>
+    </div>
+
+    <!-- FILA 3: Acciones y Exportación -->
+    <div class="toolbar">
+      <button onclick="seleccionarTodos()" id="btnSelTodos" disabled>☑️ Todos</button>
+      <button onclick="deseleccionarTodos()" id="btnDeselTodos" disabled>⬜ Ninguno</button>
+      <button onclick="eliminarSeleccionados()" id="btnEliminar" class="btn-danger" disabled>🗑️ Eliminar</button>
+      <button onclick="editarMasiva()" id="btnEditarMasiva" disabled>✏️ Editar</button>
+      <button onclick="limpiarTextosRaros()" id="btnLimpiarTexto" class="btn-warning" disabled>🧹 Limpiar Textos</button>
+      <button onclick="guardarVista()" id="btnGuardarVista" disabled>💾 G. Vista</button>
+      <button onclick="cargarVista()" id="btnCargarVista" disabled>📂 C. Vista</button>
+      
+      <div class="separador"></div>
+
+      <button onclick="exportarFiltrados()" id="btnExportar" class="btn-success" disabled>📥 Exportar Filtrados</button>
+      <button onclick="exportarPorCarpetas()" id="btnExportarCarpetas" class="btn-purple" disabled>📦 Exportar Carpetas</button>
+      <button onclick="mostrarMapa()" id="btnMapa" class="btn-primary" disabled>🗺️ Ver Mapa</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat">Total: <strong id="totalRegistros">0</strong></div>
+      <div class="stat">Filtrados: <strong id="totalFiltrados">0</strong></div>
+      <div class="stat">Seleccionados: <strong id="totalSeleccionados">0</strong></div>
+      <div class="stat">Duplicados: <strong id="totalDuplicados">0</strong></div>
+      <div class="stat">Carpetas: <strong id="totalCarpetas">0</strong></div>
+    </div>
+
+    <div class="table-container">
+      <table id="tablaResultados">
+        <thead><tr id="tablaHeader"></tr></thead>
+        <tbody id="tablaBody"><tr><td colspan="10" class="empty">Carga un Excel para comenzar</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="modalAyuda" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarAyuda()">&times;</span>
+      <h3>📖 Guía Rápida</h3>
+      <div class="help-section">
+        <h4>⌨️ Atajos de teclado</h4>
+        <p><code>1</code> a <code>9</code> asignar a carpeta · <code>A</code> Todos · <code>N</code> Ninguno · <code>D</code> Duplicados · <code>Ctrl+Z</code> Deshacer · <code>Ctrl+F</code> Buscar</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalEstadisticas" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarEstadisticas()">&times;</span>
+      <h3>📊 Estadísticas</h3>
+      <div id="contenidoEstadisticas"></div>
+    </div>
+  </div>
+
+  <!-- MODAL DEL MAPA -->
+  <div id="modalMapa" class="modal">
+    <div class="modal-content" style="max-width:95vw; width:1200px; height:90vh; display:flex; flex-direction:column; padding:15px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3 style="margin:0; color:#333;">🗺️ Mapa de Hoteles Filtrados</h3>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button onclick="imprimirMapa()" class="btn-success" style="padding:6px 12px; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">🖨️ Imprimir Mapa</button>
+          <button onclick="cerrarMapa()" style="background:#dc3545; color:white; border:none; border-radius:50%; width:30px; height:30px; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:bold;">&times;</button>
+        </div>
+      </div>
+      
+      <div style="display:flex; flex:1; gap:15px; overflow:hidden;">
+        <div id="mapaContainer" style="flex:2; border-radius:6px; border:1px solid #ccc;"></div>
+        <div style="flex:1; display:flex; flex-direction:column; background:#f8f9fa; border-radius:6px; padding:10px; border:1px solid #dee2e6;">
+          <h4 style="margin:0 0 10px 0; font-size:0.9em; color:#0056b3;">Leyenda del Mapa</h4>
+          <div id="listaMapa" style="overflow-y:auto; flex:1; font-size:0.85em;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/modules/utils.js"></script>
+  <script src="js/modules/db.js"></script>
+  <script src="js/modules/historial.js"></script>
+  <script src="js/modules/carpetas.js"></script>
+  <script src="js/modules/filtros.js"></script>
+  <script src="js/modules/tabla.js"></script>
+  <script src="js/modules/sesion.js"></script>
+  <script src="js/modules/excel.js"></script>
+  <script src="js/modules/mapa.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
