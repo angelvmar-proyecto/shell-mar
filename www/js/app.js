@@ -12,30 +12,54 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
     try {
       const wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array'});
       const filas = [], info = [];
+      
       wb.SheetNames.forEach(nh => {
         const sh = wb.Sheets[nh]; if(!sh) return;
         const json = XLSX.utils.sheet_to_json(sh, {defval:''}); if(!json.length) return;
-        json.forEach(r => { r['_hoja_origen'] = nh; filas.push(r); });
+        json.forEach(r => { 
+          r['_hoja_origen'] = nh; 
+          filas.push(r); 
+        });
         info.push({nombre:nh, filas:json.length});
       });
-      if(!filas.length) { alertSeguro('Sin datos en ninguna hoja'); return; }
-      const setC = new Set(); filas.forEach(r => Object.keys(r).forEach(c => setC.add(c)));
+      
+      if(!filas.length) { alertSeguro('El Excel no tiene datos en ninguna hoja'); return; }
+      
+      const setC = new Set(); 
+      filas.forEach(r => Object.keys(r).forEach(c => setC.add(c)));
       columnas = ['_hoja_origen', ...Array.from(setC).filter(c=>c!=='_hoja_origen')];
+      
       datosOriginales = filas;
       carpetas.clear(); asignaciones.clear(); filtrosColumna.clear(); filtrosActivos=[]; carpetaActivaFiltro=null; contadorCarpetas=0; seleccionados.clear(); terminoBusqueda=''; cadenasDetectadas={}; columnaOrden='';
       document.getElementById('searchInput').value = '';
-      const sel = document.getElementById('columnaNombre'); sel.innerHTML='<option value="">Columna Nombre</option>';
+      
+      const sel = document.getElementById('columnaNombre'); 
+      sel.innerHTML='<option value="">Columna Nombre</option>';
       let det = '';
-      columnas.forEach(c => { if(c==='_hoja_origen') return; const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); const cl=c.toLowerCase(); if(cl.includes('nombre')||cl.includes('name')||cl.includes('hotel')) det=c; });
+      columnas.forEach(c => { 
+        if(c==='_hoja_origen') return; 
+        const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); 
+        const cl=c.toLowerCase(); 
+        if(cl.includes('nombre')||cl.includes('name')||cl.includes('hotel')) det=c; 
+      });
+      
       if(det) { sel.value=det; columnaNombre=det; }
-      habilitarBotones(); filtrarDatos(); renderizarTabla(); actualizarEstadisticas(); detectarDuplicados(); renderizarCarpetas(); renderizarFiltrosActivos();
+      
+      habilitarBotones(); 
+      filtrarDatos(); 
+      renderizarTabla(); 
+      actualizarEstadisticas(); 
+      detectarDuplicados(); 
+      renderizarCarpetas(); 
+      renderizarFiltrosActivos();
       document.getElementById('carpetasPanel').style.display='block';
+      
       const res = info.map(h=>`• ${h.nombre}: ${h.filas}`).join('\n');
-      mostrarToast(`📚 ${info.length} hojas · ${filas.length} registros`, 4000);
-      setTimeout(()=>alertSeguro(`✅ ${info.length} hojas unidas:\n\n${res}\n\nTotal: ${filas.length} registros`), 100);
-      ejecutarAutoguardado();
-      actualizarProgresoDepuracion();
-    } catch(err) { alertSeguro('Error: '+err.message); }
+      mostrarToast(`📚 ${info.length} hojas unidas · ${filas.length} registros`, 4000);
+      
+    } catch(err) { 
+      alertSeguro('Error al leer el Excel: ' + err.message); 
+    }
   };
   reader.readAsArrayBuffer(file);
 });
@@ -45,7 +69,6 @@ document.getElementById('searchInput').addEventListener('input', function() { te
 
 // ===== FILTRADO PRINCIPAL =====
 function filtrarDatos() {
-  paginaActual = 1; // Resetear a pág 1
   datosFiltrados = [...datosOriginales];
   if(carpetaActivaFiltro) {
     if(carpetaActivaFiltro==='__SIN_ASIGNAR__') datosFiltrados = datosFiltrados.filter((_,i)=>!asignaciones.has(i));
@@ -87,74 +110,10 @@ function toggleGlobal() { busquedaGlobal=!busquedaGlobal; document.getElementByI
 function toggleDifusa() { busquedaDifusa=!busquedaDifusa; document.getElementById('btnDifusa').style.background = busquedaDifusa?'#28a745':'#0056b3'; filtrarDatos(); renderizarTabla(); }
 
 function limpiarTodo() {
-  document.getElementById('searchInput').value=''; terminoBusqueda=''; busquedaGlobal=false; busquedaDifusa=false; seleccionados.clear(); filtrosActivos=[]; filtrosColumna.clear(); carpetaActivaFiltro=null; cerrarPanelFiltro(); cerrarPanelFiltro();
+  document.getElementById('searchInput').value=''; terminoBusqueda=''; busquedaGlobal=false; busquedaDifusa=false; seleccionados.clear(); filtrosActivos=[]; filtrosColumna.clear(); carpetaActivaFiltro=null; cerrarPanelFiltro();
   document.getElementById('btnGlobal').style.background='#0056b3'; document.getElementById('btnDifusa').style.background='#0056b3';
   filtrarDatos(); renderizarTabla(); actualizarEstadisticas(); renderizarFiltrosActivos(); renderizarCarpetas();
 }
-
-// ===== ESTADÍSTICAS =====
-function mostrarEstadisticas() {
-  if (!datosOriginales.length) { alertSeguro('Carga datos primero'); return; }
-  
-  const modal = document.getElementById('modalEstadisticas');
-  const cont = document.getElementById('contenidoEstadisticas');
-  const total = datosOriginales.length;
-  
-  let html = `<p><strong>Total de registros:</strong> ${total}</p>`;
-  
-  // Progreso global
-  const asignados = asignaciones.size;
-  const porcentaje = Math.round((asignados/total)*100);
-  html += `<p><strong>Progreso de clasificación:</strong> ${porcentaje}% (${asignados}/${total})</p>`;
-  
-  // Desglose por carpeta
-  html += `<h4 style="color:#6f42c1;margin-top:20px;">📁 Desglose por Carpeta</h4><div class="stat-lista">`;
-  
-  // Sin asignar
-  const sin = total - asignados;
-  const pctSin = Math.round((sin/total)*100);
-  html += `<div class="stat-item" style="border-left-color:#6c757d;">
-    <div style="flex:1;">
-      <div class="nombre">📭 Sin Asignar</div>
-      <div class="stat-barra-bg"><div class="stat-barra-fill" style="width:${pctSin}%;background:#6c757d;"></div></div>
-    </div>
-    <div class="valor" style="margin-left:15px;">${sin} (${pctSin}%)</div>
-  </div>`;
-  
-  // Cada carpeta
-  carpetas.forEach((c, id) => {
-    const n = contarRegistrosEnCarpeta(id);
-    const pct = Math.round((n/total)*100);
-    html += `<div class="stat-item" style="border-left-color:${c.color};">
-      <div style="flex:1;">
-        <div class="nombre">📁 ${escapeHtml(c.nombre)}</div>
-        <div class="stat-barra-bg"><div class="stat-barra-fill" style="width:${pct}%;background:${c.color};"></div></div>
-      </div>
-      <div class="valor" style="margin-left:15px;">${n} (${pct}%)</div>
-    </div>`;
-  });
-  html += `</div>`;
-  
-  // Top cadenas (si se detectaron)
-  if (Object.keys(cadenasDetectadas).length > 0) {
-    html += `<h4 style="color:#28a745;margin-top:20px;">🔗 Top Cadenas Detectadas</h4><div class="stat-lista">`;
-    const topCadenas = Object.entries(cadenasDetectadas)
-      .sort((a,b) => b[1].length - a[1].length)
-      .slice(0, 10);
-    topCadenas.forEach(([cad, arr]) => {
-      html += `<div class="stat-item" style="border-left-color:#28a745;">
-        <div class="nombre">${escapeHtml(cad)}</div>
-        <div class="valor">${arr.length}</div>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-  
-  cont.innerHTML = html;
-  modal.style.display = 'block';
-}
-
-function cerrarEstadisticas() { document.getElementById('modalEstadisticas').style.display = 'none'; }
 
 // ===== VISTAS =====
 function guardarVista() {
@@ -174,18 +133,84 @@ function cargarVista() {
 }
 
 // ===== EDICIÓN MASIVA =====
+function editarMasiva() {
+  if(!seleccionados.size) { alertSeguro('Selecciona registros primero'); return; }
+  const modal = document.createElement('div');
+  modal.className = 'modal'; modal.style.display = 'block';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width:400px;">
+      <h3>Editar registros</h3>
+      <p>Modificando <strong>${seleccionados.size}</strong> registro(s).</p>
+      <label>Columna:</label>
+      <select id="editColSelect" style="width:100%; margin-bottom:10px; padding:5px;">${columnas.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
+      <label>Nuevo valor:</label>
+      <input type="text" id="editValInput" style="width:100%; margin-bottom:15px; padding:5px;">
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button onclick="this.closest('.modal').remove()" style="background:#ccc; padding:8px; border:none; border-radius:4px; cursor:pointer;">Cancelar</button>
+        <button onclick="aplicarEdicionMasiva()" style="background:#0056b3; color:white; padding:8px; border:none; border-radius:4px; cursor:pointer;">Aplicar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+}
+function aplicarEdicionMasiva() {
+  const col = document.getElementById('editColSelect').value;
+  const val = document.getElementById('editValInput').value;
+  guardarParaDeshacer('edición masiva');
+  seleccionados.forEach(i => { const item=datosFiltrados[i]; const oi=datosOriginales.indexOf(item); if(oi!==-1) datosOriginales[oi][col]=val; });
+  document.querySelector('.modal[style*="display: block"]').remove();
+  filtrarDatos(); renderizarTabla(); actualizarEstadisticas();
+  mostrarToast(`✅ ${seleccionados.size} actualizados`, 3000);
+  programarAutoguardado();
+}
 
+// ===== LIMPIADOR DE CARACTERES ROTOS =====
+function limpiarTextosRaros() {
+  if (!datosOriginales.length) { alertSeguro('Carga un Excel primero'); return; }
+  const haySeleccion = seleccionados.size > 0;
+  const mensaje = haySeleccion ? `¿Limpiar los ${seleccionados.size} seleccionados?` : `¿Limpiar TODA la base (${datosOriginales.length})?`;
+
+  confirmarSeguro(mensaje, (confirmado) => {
+    if (!confirmado) return;
+    mostrarToast('⏳ Limpiando textos...', 5000);
+    setTimeout(() => {
+      guardarParaDeshacer('limpiar textos');
+      const reemplazos = {
+        'Ã¡': 'á', 'Ã©': 'é', 'Ã': 'í', 'Ã³': 'ó', 'Ãº': 'ú', 'Ã±': 'ñ', 'Ã': 'Á', 'Ã‰': 'É', 'Ã': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú', 'Ã‘': 'Ñ',
+        'â€™': "'", 'â€~': "'", 'â€œ': '"', 'â€': '"', 'â€“': '–', 'â€”': '—', 'â€¦': '...', 'Â ': ' ', 'Â': '', 'Âº': 'º', 'Âª': 'ª',
+        'Ã¼': 'ü', 'Ãœ': 'Ü', 'Ã§': 'ç', 'Ã‡': 'Ç', 'Ã¢â‚¬â„¢': "'", 'Ã¢â‚¬Å“': '"'
+      };
+      const regex = new RegExp(Object.keys(reemplazos).join('|'), 'g');
+      const limpiarString = (str) => typeof str === 'string' ? str.replace(regex, match => reemplazos[match] || match) : str;
+      
+      let modificados = 0;
+      const indices = haySeleccion ? Array.from(seleccionados).map(i => datosOriginales.indexOf(datosFiltrados[i])) : datosOriginales.keys();
+      
+      for (const oi of indices) {
+        if (oi === -1) continue;
+        let filaMod = false;
+        for (const col of columnas) {
+          if (col === '_hoja_origen') continue;
+          const orig = datosOriginales[oi][col];
+          const limpio = limpiarString(orig);
+          if (limpio !== orig) { datosOriginales[oi][col] = limpio; filaMod = true; }
+        }
+        if (filaMod) modificados++;
+      }
+      filtrarDatos(); renderizarTabla(); actualizarEstadisticas(); programarAutoguardado();
+      mostrarToast(modificados > 0 ? `✅ ${modificados} limpiados` : `✨ Nada que limpiar`, 3000);
+    }, 100);
+  });
+}
+
+// ===== ELIMINAR =====
 function eliminarSeleccionados() {
   if(!seleccionados.size) return;
-  
   if (seleccionados.size > 50) {
-    const texto = prompt(`⚠️ Vas a eliminar ${seleccionados.size} registros de golpe.\n\nEscribe "BORRAR" para confirmar:`);
-    if (texto !== 'BORRAR') { alertSeguro('Eliminación cancelada'); return; }
-  } else {
-    if(!confirm(`¿Eliminar ${seleccionados.size} registros?`)) return;
-  }
+    const texto = prompt(`⚠️ Eliminar ${seleccionados.size} registros.\nEscribe "BORRAR" para confirmar:`);
+    if (texto !== 'BORRAR') return;
+  } else { if(!confirm(`¿Eliminar ${seleccionados.size}?`)) return; }
   
-  guardarParaDeshacer('eliminar registros');
+  guardarParaDeshacer('eliminar');
   const idxs = new Set(); seleccionados.forEach(i => { const item=datosFiltrados[i]; const oi=datosOriginales.indexOf(item); if(oi!==-1) idxs.add(oi); });
   const sorted = Array.from(idxs).sort((a,b)=>b-a);
   const mapa = new Map(); let n=0;
@@ -195,40 +220,33 @@ function eliminarSeleccionados() {
   asignaciones = nuevas; seleccionados.clear();
   filtrarDatos(); renderizarTabla(); actualizarEstadisticas(); detectarDuplicados(); renderizarCarpetas();
   mostrarToast(`✅ ${sorted.length} eliminados`);
-  programarAutoguardado(); actualizarProgresoDepuracion();
+  programarAutoguardado();
 }
 
-// ===== EXPORTAR (Ahora con formato) =====
+// ===== EXPORTAR =====
 function exportarPorCarpetas() {
   if(!carpetas.size) { alertSeguro('Crea carpetas primero'); return; }
   const wb = XLSX.utils.book_new(); let hojas=0;
-  
   for(const [id,c] of carpetas) {
     const regs = []; datosOriginales.forEach((r,i)=>{ if(asignaciones.get(i)===id) regs.push(r); });
     if(!regs.length) continue;
-    
-    const ws = crearHojaExcel(regs); // <-- Usa la nueva función con formato
+    const ws = crearHojaExcel(regs);
     let name = c.nombre.replace(/[\\\/\?\*\[\]:]/g,'_').substring(0,31);
     let final = name, sfx=1; while(wb.SheetNames.includes(final)) { const s=`_${sfx}`; final=name.substring(0,31-s.length)+s; sfx++; }
     XLSX.utils.book_append_sheet(wb, ws, final); hojas++;
   }
-  
   const sin = []; datosOriginales.forEach((r,i)=>{ if(!asignaciones.has(i)) sin.push(r); });
-  if(sin.length) { 
-    XLSX.utils.book_append_sheet(wb, crearHojaExcel(sin), 'Sin Asignar'); // <-- Usa la nueva función con formato
-    hojas++; 
-  }
-  
+  if(sin.length) { XLSX.utils.book_append_sheet(wb, crearHojaExcel(sin), 'Sin Asignar'); hojas++; }
   if(!hojas) { alertSeguro('Sin datos'); return; }
-  XLSX.writeFile(wb, `carpetas_${fechaHoy()}.xlsx`); setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500); setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500);
-  alertSeguro(`✅ ${hojas} hojas exportadas`);
+  XLSX.writeFile(wb, `carpetas_${fechaHoy()}.xlsx`);
+  setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500);
 }
 
 function exportarFiltrados() {
   if(!datosFiltrados.length) { alertSeguro('Sin datos'); return; }
-  const wb = XLSX.utils.book_new(); 
-  XLSX.utils.book_append_sheet(wb, crearHojaExcel(datosFiltrados), 'Filtrados'); // <-- Usa la nueva función con formato
-  XLSX.writeFile(wb, `filtrados_${fechaHoy()}.xlsx`); setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500); setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500);
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, crearHojaExcel(datosFiltrados), 'Filtrados');
+  XLSX.writeFile(wb, `filtrados_${fechaHoy()}.xlsx`);
+  setTimeout(() => { document.body.style.pointerEvents = "auto"; }, 500);
 }
 
 // ===== UTILIDADES UI =====
@@ -253,24 +271,16 @@ try { const s=localStorage.getItem('vistasGuardadas'); if(s) vistasGuardadas=JSO
 // ===== ATAJOS DE TECLADO =====
 document.addEventListener('keydown', function(e) {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
-
   if(e.ctrlKey && e.key==='f') { e.preventDefault(); document.getElementById('searchInput').focus(); }
   else if(e.ctrlKey && e.key==='z') { e.preventDefault(); deshacer(); }
-  else if(e.key==='Escape') { cerrarPanelFiltro(); cerrarAyuda(); cerrarEstadisticas(); }
-  
+  else if(e.key==='Escape') { cerrarPanelFiltro(); cerrarAyuda(); cerrarEstadisticas(); cerrarMapa(); }
   else if (e.key === 'a' || e.key === 'A') { e.preventDefault(); seleccionarTodos(); mostrarToast('☑️ Todos seleccionados', 1500); }
   else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); deseleccionarTodos(); mostrarToast('⬜ Selección vacía', 1500); }
   else if (e.key === 'd' || e.key === 'D') { e.preventDefault(); mostrarDuplicados(); }
-  
   else if (/^[1-9]$/.test(e.key)) {
     const index = parseInt(e.key) - 1;
     const carpetasArray = Array.from(carpetas.keys());
-    if (carpetasArray[index]) {
-      e.preventDefault();
-      asignarSeleccionadosA(carpetasArray[index]);
-    } else {
-      mostrarToast(`⚠️ No existe la carpeta ${e.key}`, 1500);
-    }
+    if (carpetasArray[index]) { e.preventDefault(); asignarSeleccionadosA(carpetasArray[index]); }
   }
 });
 
@@ -281,104 +291,4 @@ document.addEventListener('keydown', function(e) {
 })();
 
 // Exponer al window
-Object.assign(window, { crearCarpeta, eliminarCarpeta, renombrarCarpeta, filtrarPorCarpeta, asignarSeleccionadosA, moverSeleccionadosA, exportarPorCarpetas, abrirFiltroColumna, cerrarPanelFiltro, filtrarListaValores, marcarTodosValores, aplicarFiltroColumna, limpiarFiltroColumna, limpiarTodo, toggleGlobal, toggleDifusa, mostrarDuplicados, detectarCadenas, guardarVista, cargarVista, editarMasiva, eliminarSeleccionados, seleccionarTodos, deseleccionarTodos, toggleSeleccion, ordenarPor, exportarFiltrados, mostrarAyuda, cerrarAyuda, filtrarDatos, renderizarTabla, renderizarCarpetas, actualizarEstadisticas, renderizarFiltrosActivos, deshacer, mostrarEstadisticas, cerrarEstadisticas });
-
-function editarMasiva() {
-  if(!seleccionados.size) { alertSeguro('Selecciona al menos un registro primero'); return; }
-  
-  // Creamos un modal rápido para elegir columna y valor
-  const modal = document.createElement('div');
-  modal.className = 'modal';
-  modal.style.display = 'block';
-  modal.innerHTML = `
-    <div class="modal-content" style="max-width:400px;">
-      <h3>Editar registros</h3>
-      <p>Modificando <strong>${seleccionados.size}</strong> registro(s).</p>
-      <label>Columna a editar:</label>
-      <select id="editColSelect" style="width:100%; margin-bottom:10px; padding:5px;">
-        ${columnas.map(c => `<option value="${c}">${c}</option>`).join('')}
-      </select>
-      <label>Nuevo valor:</label>
-      <input type="text" id="editValInput" style="width:100%; margin-bottom:15px; padding:5px;">
-      <div style="display:flex; gap:10px; justify-content:flex-end;">
-        <button onclick="this.closest('.modal').remove()" style="background:#ccc; color:#333; padding:8px 15px; border:none; border-radius:4px; cursor:pointer;">Cancelar</button>
-        <button onclick="aplicarEdicionMasiva()" style="background:#0056b3; color:white; padding:8px 15px; border:none; border-radius:4px; cursor:pointer;">Aplicar</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
-
-function aplicarEdicionMasiva() {
-  const col = document.getElementById('editColSelect').value;
-  const val = document.getElementById('editValInput').value;
-  
-  guardarParaDeshacer('edición masiva');
-  seleccionados.forEach(i => { 
-    const item=datosFiltrados[i]; 
-    const oi=datosOriginales.indexOf(item); 
-    if(oi!==-1) datosOriginales[oi][col]=val; 
-  });
-  
-  document.querySelector('.modal[style*="display: block"]').remove();
-  filtrarDatos(); 
-  renderizarTabla(); 
-  actualizarEstadisticas();
-  mostrarToast(`✅ ${seleccionados.size} registros actualizados`, 3000);
-  programarAutoguardado();
-}
-// ===== LIMPIADOR DE CARACTERES ROTOS (MEJORADO) =====
-function limpiarTextosRaros() {
-  if (!datosOriginales.length) { alertSeguro('Carga un Excel primero'); return; }
-  const haySeleccion = seleccionados.size > 0;
-  
-  const mensaje = haySeleccion 
-    ? `¿Limpiar acentos y símbolos rotos en los ${seleccionados.size} registros seleccionados?`
-    : `No has seleccionado nada. ¿Quieres limpiar TODA la base de datos (${datosOriginales.length} registros)?`;
-
-  confirmarSeguro(mensaje, (confirmado) => {
-    if (!confirmado) return;
-    
-    mostrarToast('⏳ Limpiando textos...', 5000);
-    
-    setTimeout(() => {
-      guardarParaDeshacer('limpiar textos');
-      
-      const reemplazos = {
-        'Ã¡': 'á', 'Ã©': 'é', 'Ã': 'í', 'Ã³': 'ó', 'Ãº': 'ú', 'Ã±': 'ñ',
-        'Ã': 'Á', 'Ã‰': 'É', 'Ã': 'Í', 'Ã“': 'Ó', 'Ãš': 'Ú', 'Ã‘': 'Ñ',
-        'Ã¼': 'ü', 'Ãœ': 'Ü', 'Ã§': 'ç', 'Ã‡': 'Ç',
-        'â€™': "'", 'â€~': "'", 'â€œ': '"', 'â€': '"',
-        'â€“': '–', 'â€”': '—', 'â€¦': '...',
-        'Â ': ' ', 'Â': '', 'Âº': 'º', 'Âª': 'ª',
-        'Ã¢â‚¬â„¢': "'", 'Ã¢â‚¬Å“': '"', 'Ã¢â‚¬': '"',
-        'Ã©': 'é', 'Ã ': 'à'
-      };
-
-      const regex = new RegExp(Object.keys(reemplazos).join('|'), 'g');
-      const limpiarString = (str) => typeof str === 'string' ? str.replace(regex, match => reemplazos[match] || match) : str;
-      
-      let modificados = 0;
-      const indices = haySeleccion ? Array.from(seleccionados).map(i => datosOriginales.indexOf(datosFiltrados[i])) : datosOriginales.keys();
-      
-      for (const oi of indices) {
-        if (oi === -1) continue;
-        let filaMod = false;
-        for (const col of columnas) {
-          if (col === '_hoja_origen') continue;
-          const orig = datosOriginales[oi][col];
-          const limpio = limpiarString(orig);
-          if (limpio !== orig) { datosOriginales[oi][col] = limpio; filaMod = true; }
-        }
-        if (filaMod) modificados++;
-      }
-      
-      filtrarDatos(); 
-      renderizarTabla(); 
-      actualizarEstadisticas(); 
-      programarAutoguardado();
-      
-      mostrarToast(modificados > 0 ? `✅ ${modificados} registros limpiados` : `✨ No se encontraron textos rotos`, 3000);
-    }, 100);
-  });
-}
+Object.assign(window, { crearCarpeta, eliminarCarpeta, renombrarCarpeta, filtrarPorCarpeta, asignarSeleccionadosA, moverSeleccionadosA, exportarPorCarpetas, abrirFiltroColumna, cerrarPanelFiltro, filtrarListaValores, marcarTodosValores, aplicarFiltroColumna, limpiarFiltroColumna, limpiarTodo, toggleGlobal, toggleDifusa, mostrarDuplicados, detectarCadenas, guardarVista, cargarVista, editarMasiva, aplicarEdicionMasiva, eliminarSeleccionados, seleccionarTodos, deseleccionarTodos, toggleSeleccion, ordenarPor, exportarFiltrados, mostrarAyuda, cerrarAyuda, filtrarDatos, renderizarTabla, renderizarCarpetas, actualizarEstadisticas, renderizarFiltrosActivos, deshacer, mostrarEstadisticas, cerrarEstadisticas, limpiarTextosRaros });
