@@ -173,3 +173,19 @@ th, td { padding: 4px 6px; }
   padding: 2px 6px !important;
 }
 .map-tooltip::before { display: none !important; } /* Quitar la flechita */
+
+@media print {
+  /* Hacer el mapa base más claro para que resalten los pines */
+  .leaflet-tile-pane { opacity: 0.7; }
+  
+  /* Asegurar que el texto de los hoteles se lea bien */
+  .map-tooltip {
+    background: white !important;
+    border: 1px solid #999 !important;
+    color: black !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+    padding: 2px 5px !important;
+    box-shadow: none !important;
+  }
+}

@@ -18,7 +18,7 @@ function mostrarMapa() {
   mapaInstancia = L.map('mapaContainer').setView([21.1619, -86.8515], 8);
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: 'attribution: '&copy; OpenStreetMap'copy; OpenStreetMap attribution: '&copy; OpenStreetMap'copy; CARTO'
+    attribution: 'attribution: 'attribution: '&copy; OpenStreetMap'copy; OpenStreetMap attribution: '&copy; OpenStreetMap'copy; CARTO'copy; OpenStreetMap attribution: 'attribution: '&copy; OpenStreetMap'copy; OpenStreetMap attribution: '&copy; OpenStreetMap'copy; CARTO'copy; CARTO'
   }).addTo(mapaInstancia);
 
   const bounds = L.latLngBounds();
@@ -40,6 +40,10 @@ function mostrarMapa() {
       
       // Icono con el número y un borde blanco
       const icono = L.divIcon({
+        className: 'custom-pin',
+        html: `<div style="background-color:${colorPin}; width:22px; height:22px; border-radius:50% 50% 50% 0; transform: rotate(-45deg); border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.5);"><span style="display:block; transform: rotate(45deg); color:white; font-size:11px; font-weight:bold; text-align:center; line-height:22px;">${contador}</span></div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 22]
         className: 'custom-pin',
         html: `<div style="background-color:${colorPin}; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow:0 0 4px rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; color:white; font-size:10px; font-weight:bold;">${contador}</div>`,
         iconSize: [16, 16],
