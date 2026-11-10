@@ -15,10 +15,11 @@ function mostrarMapa() {
 
   if (mapaInstancia) { mapaInstancia.remove(); mapaInstancia = null; }
 
+  // Mapa base limpio (estilo CartoDB Positron)
   mapaInstancia = L.map('mapaContainer').setView([21.1619, -86.8515], 8);
 
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: 'attribution: 'attribution: '&copy; OpenStreetMap'copy; OpenStreetMap attribution: '&copy; OpenStreetMap'copy; CARTO'copy; OpenStreetMap attribution: 'attribution: '&copy; OpenStreetMap'copy; OpenStreetMap attribution: '&copy; OpenStreetMap'copy; CARTO'copy; CARTO'
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
   }).addTo(mapaInstancia);
 
   const bounds = L.latLngBounds();
@@ -38,26 +39,22 @@ function mostrarMapa() {
       
       const colorPin = carpeta ? carpeta.color : '#dc3545'; 
       
-      // Icono con el número y un borde blanco
+      // Pin con forma de gota (rotado) y número adentro
       const icono = L.divIcon({
         className: 'custom-pin',
-        html: `<div style="background-color:${colorPin}; width:22px; height:22px; border-radius:50% 50% 50% 0; transform: rotate(-45deg); border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.5);"><span style="display:block; transform: rotate(45deg); color:white; font-size:11px; font-weight:bold; text-align:center; line-height:22px;">${contador}</span></div>`,
-        iconSize: [22, 22],
-        iconAnchor: [11, 22]
-        className: 'custom-pin',
-        html: `<div style="background-color:${colorPin}; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow:0 0 4px rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; color:white; font-size:10px; font-weight:bold;">${contador}</div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
+        html: `<div style="background-color:${colorPin}; width:20px; height:20px; border-radius:50% 50% 50% 0; transform: rotate(-45deg); border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.5);"><span style="display:block; transform: rotate(45deg); color:white; font-size:10px; font-weight:bold; text-align:center; line-height:20px;">${contador}</span></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 20]
       });
 
       const marker = L.marker([lat, lng], {icon: icono}).addTo(mapaInstancia);
       
-      // AÑADIR TOOLTIP PERMANENTE CON EL NOMBRE
+      // Etiqueta con el nombre del hotel
       marker.bindTooltip(`${contador}. ${escapeHtml(nombre)}`, {
         permanent: true,
         direction: 'right',
         className: 'map-tooltip',
-        offset: [8, 0]
+        offset: [8, -10]
       });
       
       const etiquetaCarpeta = carpeta ? `<br><span style="background:${carpeta.color}22;color:#333;padding:2px 6px;border-radius:4px;font-size:11px;">📁 ${escapeHtml(carpeta.nombre)}</span>` : '';
@@ -82,7 +79,7 @@ function mostrarMapa() {
   document.getElementById('listaMapa').innerHTML = listaHtml || '<p style="color:#666;">No hay coordenadas válidas.</p>';
 
   if (pinesAgregados > 0) {
-    mapaInstancia.fitBounds(bounds, { padding: [50, 50] }); // Más padding para que quepan los tooltips
+    mapaInstancia.fitBounds(bounds, { padding: [50, 50] });
   }
 }
 
@@ -117,8 +114,17 @@ function imprimirMapa() {
       #mapaContainer { height: 70vh !important; border: 2px solid #333 !important; page-break-inside: avoid; }
       #listaMapa { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; font-size: 10px; margin-top: 10px; }
       .item-mapa { page-break-inside: avoid; border: none !important; padding: 2px !important; }
-      /* Hacer los tooltips más legibles en papel */
-      .map-tooltip { background: transparent !important; border: none !important; box-shadow: none !important; color: black !important; font-weight: bold; font-size: 10px; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }
+      
+      /* Forzar que el texto de los tooltips sea legible en la impresión */
+      .map-tooltip {
+        background: white !important;
+        border: 1px solid #999 !important;
+        color: black !important;
+        font-size: 10px !important;
+        font-weight: bold !important;
+        padding: 1px 3px !important;
+        box-shadow: none !important;
+      }
     }
   `;
   document.head.appendChild(style);
