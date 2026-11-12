@@ -18,8 +18,8 @@ function mostrarMapa() {
   // Mapa base limpio (estilo CartoDB Positron)
   mapaInstancia = L.map('mapaContainer').setView([21.1619, -86.8515], 8);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'attribution: '&copy; OpenStreetMap &copy; CARTO'copy; OpenStreetMap'
   }).addTo(mapaInstancia);
 
   const bounds = L.latLngBounds();
